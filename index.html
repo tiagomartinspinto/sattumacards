@@ -19,51 +19,51 @@
   <body>
     <!-- Burger Menu -->
     <div class="burger-menu">
-      <div class="menu-icon" onclick="toggleMenu()">
+      <div class="menu-icon" role="button" tabindex="0" aria-label="Avaa valikko">
         <div class="line"></div>
         <div class="line"></div>
         <div class="line"></div>
       </div>
       <div class="menu-content" id="menuContent">
         <ul>
-          <li onclick="openModal('instructionsModal')">Pelin ohjeet</li>
-          <li onclick="openModal('historyModal')">Lisätietoa</li>
-          <li onclick="openModal('contactsModal')">Yhteystiedot</li>
+          <li data-modal-target="instructionsModal" role="button" tabindex="0">Pelin ohjeet</li>
+          <li data-modal-target="historyModal" role="button" tabindex="0">Lisätietoa</li>
+          <li data-modal-target="contactsModal" role="button" tabindex="0">Yhteystiedot</li>
         </ul>
       </div>
     </div>
     <!-- Modals for Menu Items -->
     <div id="instructionsModal" class="modal">
       <div class="modal-content">
-        <span class="close" onclick="closeModal('instructionsModal')">
+        <span class="close" data-modal-close="instructionsModal">
           &times;
         </span>
         <h2>//Pelin ohjeet</h2>
-        <p id="instructionsContent">
+        <div id="instructionsContent">
           <!-- Instructions content will be loaded here -->
-        </p>
+        </div>
       </div>
     </div>
     <div id="historyModal" class="modal">
       <div class="modal-content">
-        <span class="close" onclick="closeModal('historyModal')">
+        <span class="close" data-modal-close="historyModal">
           &times;
         </span>
         <h2>//Lisätietoa</h2>
-        <p id="historyContent">
+        <div id="historyContent">
           <!-- History content will be loaded here -->
-        </p>
+        </div>
       </div>
     </div>
     <div id="contactsModal" class="modal">
       <div class="modal-content">
-        <span class="close" onclick="closeModal('contactsModal')">
+        <span class="close" data-modal-close="contactsModal">
           &times;
         </span>
         <h2>//Yhteystiedot</h2>
-        <p id="contactsContent">
+        <div id="contactsContent">
           <!-- Contacts content will be loaded here -->
-        </p>
+        </div>
       </div>
     </div>
     <!-- Main Content -->
@@ -81,7 +81,7 @@
       <div class="buttons-container">
         <button
           class="button-arounder"
-          onclick="navigate('http://server.sattuma.com:4000/index.html')"
+          id="createGameBtn"
         >
           Pelihuoneeseen
         </button>
@@ -102,7 +102,7 @@
           border: none;
           cursor: pointer;
         "
-        onclick="document.getElementById('resolution-warning').style.display='none'"
+        id="dismissResolutionWarningBtn"
       >
         Sulje
       </button>

@@ -21,8 +21,14 @@ window.onclick = function (event) {
 
 function toggleMenu() {
   var menuIcon = document.querySelector(".menu-icon");
+  if (!menuIcon) {
+    return;
+  }
   menuIcon.classList.toggle("open");
   var menuContent = document.getElementById("menuContent");
+  if (!menuContent) {
+    return;
+  }
   menuContent.style.display =
     menuContent.style.display === "block" ? "none" : "block";
 }
@@ -63,11 +69,22 @@ function handleWindowResize() {
 // Event Binding Functions
 function bindEventListeners() {
   const createGameBtn = document.getElementById("createGameBtn");
+  const homePageBtn = document.getElementById("homePageBtn");
   const closeModalButton = document.getElementById("closeModalButton");
   const centerImage = document.getElementById("centerImage");
+  const menuIcon = document.querySelector(".menu-icon");
+  const dismissResolutionWarningBtn = document.getElementById(
+    "dismissResolutionWarningBtn"
+  );
 
   if (createGameBtn) {
-    createGameBtn.addEventListener("click", () => navigate("gameA.html"));
+    createGameBtn.addEventListener("click", () =>
+      navigate("./public/index.html")
+    );
+  }
+
+  if (homePageBtn) {
+    homePageBtn.addEventListener("click", () => navigate("index.html"));
   }
 
   if (closeModalButton) {
@@ -76,6 +93,38 @@ function bindEventListeners() {
 
   if (centerImage) {
     centerImage.addEventListener("dragstart", (e) => e.preventDefault());
+  }
+
+  if (menuIcon) {
+    menuIcon.addEventListener("click", toggleMenu);
+    menuIcon.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        toggleMenu();
+      }
+    });
+  }
+
+  document.querySelectorAll("[data-modal-target]").forEach((menuItem) => {
+    menuItem.addEventListener("click", () => openModal(menuItem.dataset.modalTarget));
+    menuItem.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        openModal(menuItem.dataset.modalTarget);
+      }
+    });
+  });
+
+  document.querySelectorAll("[data-modal-close]").forEach((closeButton) => {
+    closeButton.addEventListener("click", () =>
+      closeModal(closeButton.dataset.modalClose)
+    );
+  });
+
+  if (dismissResolutionWarningBtn) {
+    dismissResolutionWarningBtn.addEventListener("click", () => {
+      document.getElementById("resolution-warning").style.display = "none";
+    });
   }
 
   window.addEventListener("resize", handleWindowResize);
@@ -87,17 +136,17 @@ function bindEventListeners() {
   loadModalContent(
     "instructionsModal",
     "instructionsContent",
-    "./public/text-instruct/pelinohjeet.txt"
+    "./public/content/fi/instructions.html"
   );
   loadModalContent(
     "historyModal",
     "historyContent",
-    "./public/text-instruct/lisatietoa.txt"
+    "./public/content/fi/about.html"
   );
   loadModalContent(
     "contactsModal",
     "contactsContent",
-    "./public/text-instruct/yhteystiedot.txt"
+    "./public/content/fi/contacts.html"
   );
 }
 

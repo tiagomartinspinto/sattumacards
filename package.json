@@ -4,19 +4,21 @@
   "description": "main repository for Sattuma card game",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "check": "node --check server.js && node scripts/check-client-modules.js && npm run check:decks && npm run smoke",
+    "check:decks": "node scripts/check-decks.js",
+    "smoke": "node scripts/smoke-check.js",
+    "test": "npm run check",
     "start": "node server.js"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "express": "^4.18.2",
     "socket.io": "^4.7.4"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ptiagomp/sattumacards.git"
+    "url": "git+https://github.com/ptiagomp2/sattumacards.git"
   }
-  
 }

@@ -13,133 +13,303 @@
   </head>
 
   <body>
-    <!-- Burger Menu -->
+    <div class="language-switcher" aria-label="Language">
+      <label for="languageSelector" data-i18n="languageLabel">Kieli</label>
+      <select
+        id="languageSelector"
+        title="Vaihda kieltä"
+        aria-label="Vaihda kieltä"
+        data-i18n-title="languageSelector"
+        data-i18n-aria-label="languageSelector"
+      >
+        <option value="fi">Suomi</option>
+        <option value="en">English</option>
+      </select>
+    </div>
+
     <div class="burger-menu">
-        <div class="menu-icon" onclick="toggleMenu()">
+        <div
+          class="menu-icon"
+          role="button"
+          tabindex="0"
+          aria-label="Avaa valikko"
+          data-i18n-aria-label="menuOpen"
+          aria-controls="menuContent"
+          aria-expanded="false"
+        >
           <div class="line"></div>
           <div class="line"></div>
           <div class="line"></div>
         </div>
         <div class="menu-content" id="menuContent">
           <ul>
-            <li onclick="openModal('instructionsModal')">Pelin ohjeet</li>
-            <li onclick="openModal('historyModal')">Lisätietoa</li>
-            <li onclick="openModal('contactsModal')">Yhteystiedot</li>
+            <li data-modal-target="instructionsModal" role="button" tabindex="0" data-i18n="menuInstructions">Pelin ohjeet</li>
+            <li data-modal-target="historyModal" role="button" tabindex="0" data-i18n="menuMoreInfo">Lisätietoa</li>
+            <li data-modal-target="contactsModal" role="button" tabindex="0" data-i18n="menuContacts">Yhteystiedot</li>
           </ul>
         </div>
       </div>
-      <!-- Modals for Menu Items -->
       <div id="instructionsModal" class="modal">
         <div class="modal-content">
-          <span class="close" onclick="closeModal('instructionsModal')">
+          <button class="close" type="button" data-modal-close="instructionsModal">
             &times;
-          </span>
-          <h2>//Pelin ohjeet</h2>
-          <p id="instructionsContent">
+          </button>
+          <h2 data-i18n="modalInstructionsTitle">//Pelin ohjeet</h2>
+          <div id="instructionsContent" class="modal-copy">
             <!-- Instructions content will be loaded here -->
-          </p>
+          </div>
         </div>
       </div>
       <div id="historyModal" class="modal">
         <div class="modal-content">
-          <span class="close" onclick="closeModal('historyModal')">
+          <button class="close" type="button" data-modal-close="historyModal">
             &times;
-          </span>
-          <h2>//Lisätietoa</h2>
-          <p id="historyContent">
+          </button>
+          <h2 data-i18n="modalMoreInfoTitle">//Lisätietoa</h2>
+          <div id="historyContent" class="modal-copy">
             <!-- History content will be loaded here -->
-          </p>
+          </div>
         </div>
       </div>
       <div id="contactsModal" class="modal">
         <div class="modal-content">
-          <span class="close" onclick="closeModal('contactsModal')">
+          <button class="close" type="button" data-modal-close="contactsModal">
             &times;
-          </span>
-          <h2>//Yhteystiedot</h2>
-          <p id="contactsContent">
+          </button>
+          <h2 data-i18n="modalContactsTitle">//Yhteystiedot</h2>
+          <div id="contactsContent" class="modal-copy">
             <!-- Contacts content will be loaded here -->
-          </p>
+          </div>
         </div>
       </div>
       
-      <div class="title">
-      <img src="./imgs/sattuma-text-img.webp" alt="Sattuma" class="title-image"/>
-      </div>
-
- 
-
-    <!-- Deck Container -->
-    <div class="deck-container">
-      <div class="deck" id="deck1" title="Tilanne"></div>
-      <div class="deck" id="deck0" title="Tila"></div>
-      <div class="deck" id="deck5" title="Keinot ja oivallukset"></div>
-      <div class="deck" id="deck3" title="Resurssit"></div>
-      <div class="deck" id="deck4" title="Opetusmuoto"></div>
-      <div class="deck" id="deck2" title="Sattuma"></div>
-    </div>
-
-    <!-- Dropzone Container -->
-    <div class="dropzone-container">
-      <div class="dropzone" id="dropzone1"></div>
-      <div class="dropzone" id="dropzone0"></div>
-      <div class="dropzone" id="dropzone5"></div>
-      <div class="dropzone" id="dropzone3"></div>
-      <div class="dropzone" id="dropzone4"></div>
-      <div class="dropzone" id="dropzone2"></div>
-    </div>
-
-    <div class="button-container">
-
-      <!-- Home Button with an image inside -->
-      <button class="button-arounder" onclick="window.location.href='https://www.sattuma.com/';">
-        <img src="./imgs/sattuma-logo.webp" alt="Sattuma" />
-      </button>
-
-      <!-- Reset Button -->
-      <button class="button-arounder" id="resetBtn">
-        Sekoita kortit
-      </button>
-
-      <!-- Background Color Selector -->
-      <select id="backgroundColorSelector" style="background-color:#1e272e; color: #bcbfc1;">
-        <!-- Standard Colors -->
-        <option value="default">Oletus</option>
-        <option value="purple">Violetti</option>
-        <option value="candypink">Karkkipinkki</option>
-        <option value="softplum">Mieto luumu</option>
-        <option value="seagreen">Merenvihreä</option>
-
-        <!-- Gradient Colors -->
-        <option value="ocean">Valtameri</option>
-        <option value="bloodorange">Veriappelsiini</option>
-        <option value="antarctica">Antarktis</option>
-        <option value="dusk">Hämärä</option>
-        <option value="negative">Negatiivinen vaikutus</option>
-      </select>
-    </div>
-
-    <!-- Player List and Game Console Container -->
-    <div class="info-console-container">
-      <div class="game-info-container">
-        <div class="game-id-section">
-          <div id="gameIdDisplay"></div>
+    <main class="game-board-shell" aria-label="Sattuma-pelipöytä" data-i18n-aria-label="boardLabel">
+      <div class="play-area">
+        <div class="title">
+          <img src="./imgs/sattuma-text-img.webp" alt="Sattuma" class="title-image"/>
         </div>
-        <ul id="playersList">
-          <p></p>
-          <!-- Players will be listed here -->
-        </ul>
+
+        <div class="category-label-row" aria-hidden="true">
+          <span data-i18n="deckSituation">Tilanne</span>
+          <span data-i18n="deckSpace">Tila</span>
+          <span data-i18n="deckMethods">Keinot ja oivallukset</span>
+          <span data-i18n="deckResources">Resurssit</span>
+          <span data-i18n="deckTeachingFormat">Opetusmuoto</span>
+          <span data-i18n="deckChance">Sattuma</span>
+        </div>
+
+        <!-- Deck Container -->
+        <div class="deck-container">
+          <div class="deck" id="deck-situation" data-deck-id="situation" title="Tilanne" data-i18n-title="deckSituation"></div>
+          <div class="deck" id="deck-space" data-deck-id="space" title="Tila" data-i18n-title="deckSpace"></div>
+          <div class="deck" id="deck-methods" data-deck-id="methods" title="Keinot ja oivallukset" data-i18n-title="deckMethods"></div>
+          <div class="deck" id="deck-resources" data-deck-id="resources" title="Resurssit" data-i18n-title="deckResources"></div>
+          <div class="deck" id="deck-teaching-format" data-deck-id="teaching-format" title="Opetusmuoto" data-i18n-title="deckTeachingFormat"></div>
+          <div class="deck" id="deck-chance" data-deck-id="chance" title="Sattuma" data-i18n-title="deckChance"></div>
+        </div>
+
+        <div class="dropzone-container">
+          <div class="dropzone" id="dropzone-situation" data-deck-id="situation"></div>
+          <div class="dropzone" id="dropzone-space" data-deck-id="space"></div>
+          <div class="dropzone" id="dropzone-methods" data-deck-id="methods"></div>
+          <div class="dropzone" id="dropzone-resources" data-deck-id="resources"></div>
+          <div class="dropzone" id="dropzone-teaching-format" data-deck-id="teaching-format"></div>
+          <div class="dropzone" id="dropzone-chance" data-deck-id="chance"></div>
+        </div>
+
+        <div class="category-label-row dropzone-label-row" aria-hidden="true">
+          <span data-i18n="deckSituation">Tilanne</span>
+          <span data-i18n="deckSpace">Tila</span>
+          <span data-i18n="deckMethods">Keinot ja oivallukset</span>
+          <span data-i18n="deckResources">Resurssit</span>
+          <span data-i18n="deckTeachingFormat">Opetusmuoto</span>
+          <span data-i18n="deckChance">Sattuma</span>
+        </div>
+
+        <div class="button-container">
+
+          <!-- Random situation button with the Sattuma logo inside -->
+          <button
+            class="button-arounder quick-deal-logo-button"
+            id="quickDealBtn"
+            type="button"
+            title="Jaa satunnainen tilanne"
+            aria-label="Jaa satunnainen tilanne"
+            data-i18n-title="quickDealButton"
+            data-i18n-aria-label="quickDealButton"
+          >
+            <img src="./imgs/sattuma-logo.webp" alt="" />
+          </button>
+
+          <!-- Reset Button -->
+          <button
+            class="button-arounder icon-button shuffle-button"
+            id="resetBtn"
+            type="button"
+            title="Aloita alusta"
+            aria-label="Aloita alusta"
+            data-i18n-title="shuffleButton"
+            data-i18n-aria-label="shuffleButton"
+          >
+            <span class="toolbar-icon shuffle-icon" aria-hidden="true">
+              <span></span>
+              <span></span>
+            </span>
+          </button>
+
+          <!-- Background Color Selector -->
+          <select
+            id="backgroundColorSelector"
+            title="Vaihda taustaväriä"
+            aria-label="Vaihda taustaväriä"
+            data-i18n-title="backgroundSelector"
+            data-i18n-aria-label="backgroundSelector"
+          >
+            <option value="default" data-i18n="bgDefault">Oletus</option>
+            <option value="sage" data-i18n="bgSage">Salvianvihreä</option>
+            <option value="mist" data-i18n="bgMist">Sumunharmaa</option>
+            <option value="sky" data-i18n="bgSky">Vaalea taivas</option>
+            <option value="rose" data-i18n="bgRose">Ruusukvartsi</option>
+            <option value="dawn" data-i18n="bgDawn">Aamunkajo</option>
+          </select>
+        </div>
       </div>
-    </div>
+
+      <!-- Player List and Game Console Container -->
+      <div class="info-console-container">
+        <div class="game-info-container">
+          <div class="room-panel-header">
+            <span class="room-panel-eyebrow" data-i18n="roomPanel">Pelihuone</span>
+            <button
+              class="copy-room-button"
+              id="copyRoomBtn"
+              type="button"
+              title="Kopioi huoneen koodi"
+              aria-label="Kopioi huoneen koodi"
+              data-i18n-title="copyRoom"
+              data-i18n-aria-label="copyRoom"
+              data-i18n="copyRoomShort"
+            >
+              Kopioi pelilinkki
+            </button>
+          </div>
+          <div class="room-code-row">
+            <span data-i18n="roomCodeLabel">Koodi:</span>
+            <strong id="roomCodeDisplay">...</strong>
+          </div>
+          <div id="roomCodeScreenReader" class="sr-only"></div>
+          <div class="game-flow-panel">
+            <div class="game-flow-eyebrow" data-i18n="gameAStatus">Peli A</div>
+            <strong id="gamePhaseLabel" class="game-phase-label"></strong>
+            <p id="gameTurnHelp" class="game-turn-help"></p>
+            <div class="game-timer-panel">
+              <label for="roundTimerSelector" data-i18n="timerLabel">Ajastin</label>
+              <select
+                id="roundTimerSelector"
+                title="Valitse keskustelun ajastin"
+                aria-label="Valitse keskustelun ajastin"
+                data-i18n-title="timerSelector"
+                data-i18n-aria-label="timerSelector"
+              >
+                <option value="0" data-i18n="timerOff">Pois</option>
+                <option value="60" data-i18n="timerOneMinute">1 min</option>
+                <option value="120" data-i18n="timerTwoMinutes">2 min</option>
+                <option value="180" data-i18n="timerThreeMinutes">3 min</option>
+                <option value="300" data-i18n="timerFiveMinutes">5 min</option>
+              </select>
+              <strong id="roundTimerDisplay" class="round-timer-display">--:--</strong>
+            </div>
+            <button
+              class="copy-room-button game-flow-button"
+              id="startReplacementBtn"
+              type="button"
+              data-i18n="startReplacement"
+              data-i18n-title="startReplacement"
+              data-i18n-aria-label="startReplacement"
+            >
+              Aloita vaihtokierros
+            </button>
+          </div>
+          <div class="player-list-heading" data-i18n="playersOnline">Paikalla</div>
+          <ul id="playersList"></ul>
+        </div>
+      </div>
+    </main>
+
+    <section class="mobile-info" aria-labelledby="mobileInfoTitle">
+      <img src="./imgs/sattuma-text-img.webp" alt="Sattuma" class="mobile-info-logo" />
+      <p class="mobile-info-kicker" data-i18n="mobileKicker">Pelipöytä tarvitsee tilaa</p>
+      <h1 id="mobileInfoTitle" data-i18n="mobileTitle">Avaa Sattuma isommalla vaakasuuntaisella näytöllä</h1>
+      <p data-i18n="mobileIntro1">
+        Sattuma on korttipeli, jossa kuusi pakkaa, korttien nostopaikat ja
+        yhteinen pelihuone tarvitsevat ruudulle kunnolla tilaa.
+      </p>
+      <p data-i18n="mobileIntro2">
+        Peli toimii parhaiten tietokoneella tai tabletilla vaakasuunnassa.
+        Suositus on vähintään 900 x 620 pikseliä.
+      </p>
+
+      <div class="mobile-info-section">
+        <h2 data-i18n="mobileGameIdeaTitle">Pelin idea</h2>
+        <p data-i18n="mobileGameIdeaText">
+          Nostakaa korteista tilanteita, tiloja, opetusmuotoja, resursseja ja
+          sattumia. Kortit auttavat rakentamaan keskustelua opetuksen,
+          taiteen ja digitaalisten välineiden ympärille.
+        </p>
+      </div>
+
+      <div class="mobile-info-section">
+        <h2 data-i18n="mobileTogetherTitle">Yhdessä pelaaminen</h2>
+        <p data-i18n="mobileTogetherText">
+          Pelihuoneen koodilla samaa kierrosta voi seurata useampi osallistuja.
+          Jokainen voi avata oman näkymänsä ja pelata samassa tilassa.
+        </p>
+      </div>
+
+      <div class="mobile-info-section">
+        <h2 data-i18n="mobileMoreInfoTitle">Lisätietoa</h2>
+        <p data-i18n="mobileMoreInfoText1">
+          Sattuma on kehitetty osana Opetus- ja kulttuuriministeriön
+          rahoittamaa Taiteet ja digi -hanketta Taideyliopiston ja
+          Aalto-yliopiston yhteistyönä.
+        </p>
+        <p data-i18n-html="mobileMoreInfoText2">
+          Peliä ovat olleet suunnittelemassa
+          <a href="mailto:tomi.slottedufva@aalto.fi">Tomi Slotte Dufva</a>
+          Aalto-yliopiston Taiteen ja suunnittelun korkeakoulusta sekä
+          <a href="mailto:mikael.brygger@uniarts.fi">Mikael Brygger</a> ja
+          <a href="mailto:tomi.humalisto@uniarts.fi">Tomi Humalisto</a>
+          Taideyliopiston Teatterikorkeakoulusta.
+        </p>
+        <p data-i18n-html="mobileMoreInfoText3">
+          Verkkopelin graafisen ilmeen ja toiminnot on ohjelmoinut
+          <a href="mailto:tiago.martinspinto@aalto.fi">Tiago Martins Pinto</a>
+          Aalto-yliopistosta.
+        </p>
+      </div>
+    </section>
 
     <!-- Resolution Warning -->
     <div id="resolution-warning" style="display: none">
-        <p>Optimoi ikkunan koko: 1200x830 tai suurempi.<br />Säädä ikkunan kokoa, kunnes viesti katoaa.</p>
-        <button style="background-color: #ffd700; color: #1e272e; padding: 10px 20px; border: none; cursor: pointer;" onclick="document.getElementById('resolution-warning').style.display='none'">Sulje</button>
+        <strong id="resolution-warning-title" data-i18n="resolutionTitle">Pelitila tarvitsee enemmän tilaa</strong>
+        <p id="resolution-warning-message">
+          Käännä laite vaakasuuntaan tai suurenna selainikkunaa.
+        </p>
+        <button
+          class="resolution-warning-button"
+          id="dismissResolutionWarningBtn"
+          title="Sulje ilmoitus"
+          aria-label="Sulje ilmoitus"
+          data-i18n-title="closeNotice"
+          data-i18n-aria-label="closeNotice"
+          data-i18n="closeNoticeShort"
+        >
+          Sulje
+        </button>
     </div>
 
     <!-- Scripts -->
     <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
-    <script src="gameA.js"></script>
+    <script type="module" src="./js/gameA.js"></script>
   </body>
 </html>
