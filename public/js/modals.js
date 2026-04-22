@@ -50,18 +50,30 @@ export function initModals() {
     });
   }
 
-  document.querySelectorAll("[data-modal-target]").forEach((trigger) => {
-    trigger.addEventListener("click", () => openModal(trigger.dataset.modalTarget));
-    trigger.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        openModal(trigger.dataset.modalTarget);
-      }
-    });
+  document.addEventListener("click", (event) => {
+    const openTrigger = event.target.closest?.("[data-modal-target]");
+    const closeTrigger = event.target.closest?.("[data-modal-close]");
+
+    if (openTrigger) {
+      openModal(openTrigger.dataset.modalTarget);
+    }
+
+    if (closeTrigger) {
+      closeModal(closeTrigger.dataset.modalClose);
+    }
   });
 
-  document.querySelectorAll("[data-modal-close]").forEach((trigger) => {
-    trigger.addEventListener("click", () => closeModal(trigger.dataset.modalClose));
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" && event.key !== " ") {
+      return;
+    }
+
+    const openTrigger = event.target.closest?.("[data-modal-target]");
+
+    if (openTrigger) {
+      event.preventDefault();
+      openModal(openTrigger.dataset.modalTarget);
+    }
   });
 
   window.addEventListener("click", (event) => {

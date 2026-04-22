@@ -107,6 +107,7 @@ const THEMES = {
     shadowColor: "rgba(40, 35, 44, 0.31)",
   },
 };
+const STORAGE_KEY = "sattumaTheme";
 
 function applyTheme(themeName) {
   const theme = THEMES[themeName] || THEMES.default;
@@ -134,8 +135,16 @@ function applyTheme(themeName) {
 
 export function initThemes() {
   const selector = document.getElementById("backgroundColorSelector");
+  const savedTheme = localStorage.getItem(STORAGE_KEY);
+  const initialTheme = THEMES[savedTheme] ? savedTheme : "default";
+
+  applyTheme(initialTheme);
 
   if (selector) {
-    selector.addEventListener("change", () => applyTheme(selector.value));
+    selector.value = initialTheme;
+    selector.addEventListener("change", () => {
+      applyTheme(selector.value);
+      localStorage.setItem(STORAGE_KEY, selector.value);
+    });
   }
 }

@@ -36,6 +36,33 @@ const animalNames = [
 ];
 
 const rooms = {};
+const deckTextCache = loadDeckTextCache();
+
+function readDeckFile(deck, language) {
+  const filePath = path.join(__dirname, "public/cards", language, deck.file);
+
+  try {
+    const data = fs.readFileSync(filePath, "utf8");
+    return data
+      .split("\n")
+      .map((word) => word.trim())
+      .filter(Boolean);
+  } catch (error) {
+    console.error(`Failed to read deck file ${filePath}:`, error);
+    return [];
+  }
+}
+
+function loadDeckTextCache() {
+  return Object.fromEntries(
+    SUPPORTED_LANGUAGES.map((language) => [
+      language,
+      Object.fromEntries(
+        DECKS.map((deck) => [deck.id, readDeckFile(deck, language)])
+      ),
+    ])
+  );
+}
 
 function generateRoomCode() {
   let roomCode;
@@ -189,24 +216,22 @@ function getNextPlayerName(room) {
 }
 
 function readDeckLines(deckId, language = "fi") {
+  const normalizedLanguage = normalizeLanguage(language);
+  const cachedLines = deckTextCache[normalizedLanguage]?.[deckId];
+
+  if (cachedLines) {
+    return cachedLines;
+  }
+
   const deck = getDeck(deckId);
 
   if (!deck) {
     return [];
   }
 
-  const filePath = path.join(
-    __dirname,
-    "public/cards",
-    normalizeLanguage(language),
-    deck.file
-  );
-  const data = fs.readFileSync(filePath, "utf8");
-
-  return data
-    .split("\n")
-    .map((word) => word.trim())
-    .filter(Boolean);
+  const lines = readDeckFile(deck, normalizedLanguage);
+  deckTextCache[normalizedLanguage][deckId] = lines;
+  return lines;
 }
 
 function getCardIndex(room, deckId, cardId) {
@@ -215,10 +240,10 @@ function getCardIndex(room, deckId, cardId) {
   }
 
   const baseCards = readDeckLines(deckId, "fi");
-  const usedIndices = room.usedCardIndices[deckId] || [];
+  const usedIndices = room.usedCardIndices[deckId] || new Set();
   const availableIndices = baseCards
     .map((_, index) => index)
-    .filter((index) => !usedIndices.includes(index));
+    .filter((index) => !usedIndices.has(index));
 
   if (availableIndices.length === 0) {
     return -1;
@@ -227,7 +252,8 @@ function getCardIndex(room, deckId, cardId) {
   const selectedIndex =
     availableIndices[Math.floor(Math.random() * availableIndices.length)];
   room.cardIndices[cardId] = selectedIndex;
-  room.usedCardIndices[deckId] = [...usedIndices, selectedIndex];
+  usedIndices.add(selectedIndex);
+  room.usedCardIndices[deckId] = usedIndices;
   return selectedIndex;
 }
 
@@ -259,6 +285,20 @@ function generateCardText(room, deckId, cardId, language = "fi") {
       ? "Error fetching card text"
       : "Korttitekstin hakeminen epäonnistui";
   }
+}
+
+function generateAllCardTexts(room, language = "fi") {
+  const normalizedLanguage = normalizeLanguage(language);
+  const allTexts = {};
+
+  DECKS.forEach((deck) => {
+    for (let cardIndex = 0; cardIndex < CARD_COUNT; cardIndex++) {
+      const cardId = `card-${deck.id}-${cardIndex}`;
+      allTexts[cardId] = generateCardText(room, deck.id, cardId, normalizedLanguage);
+    }
+  });
+
+  return allTexts;
 }
 
 function resetRoomCards(room) {
@@ -510,6 +550,13 @@ io.on("connection", (socket) => {
       data.language
     );
     socket.emit("cardText", { cardId: data.cardId, text });
+  });
+
+  socket.on("requestAllCardTexts", (data) => {
+    touchRoom(room);
+    socket.emit("allCardTexts", {
+      texts: generateAllCardTexts(room, data?.language),
+    });
   });
 
   socket.on("cursorMove", (data) => {

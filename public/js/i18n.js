@@ -36,7 +36,22 @@ async function fetchDictionary(language) {
 export function createI18n() {
   const listeners = new Set();
   const dictionaries = {};
+  const contentCache = {};
   let language = getInitialLanguage();
+  let translationTargets = null;
+
+  function getTranslationTargets() {
+    if (!translationTargets) {
+      translationTargets = {
+        text: [...document.querySelectorAll("[data-i18n]")],
+        html: [...document.querySelectorAll("[data-i18n-html]")],
+        title: [...document.querySelectorAll("[data-i18n-title]")],
+        ariaLabel: [...document.querySelectorAll("[data-i18n-aria-label]")],
+      };
+    }
+
+    return translationTargets;
+  }
 
   function t(key) {
     return (
@@ -47,26 +62,31 @@ export function createI18n() {
   }
 
   function applyTranslations() {
+    const targets = getTranslationTargets();
     document.documentElement.lang = language;
 
-    document.querySelectorAll("[data-i18n]").forEach((element) => {
+    targets.text.forEach((element) => {
       element.textContent = t(element.dataset.i18n);
     });
 
-    document.querySelectorAll("[data-i18n-html]").forEach((element) => {
+    targets.html.forEach((element) => {
       element.innerHTML = t(element.dataset.i18nHtml);
     });
 
-    document.querySelectorAll("[data-i18n-title]").forEach((element) => {
+    targets.title.forEach((element) => {
       element.setAttribute("title", t(element.dataset.i18nTitle));
     });
 
-    document.querySelectorAll("[data-i18n-aria-label]").forEach((element) => {
+    targets.ariaLabel.forEach((element) => {
       element.setAttribute("aria-label", t(element.dataset.i18nAriaLabel));
     });
   }
 
   async function loadModalContent() {
+    if (!contentCache[language]) {
+      contentCache[language] = {};
+    }
+
     await Promise.all(
       Object.entries(CONTENT_FILES).map(async ([contentId, fileName]) => {
         const contentElement = document.getElementById(contentId);
@@ -75,13 +95,17 @@ export function createI18n() {
           return;
         }
 
-        const response = await fetch(`./content/${language}/${fileName}`);
+        if (!contentCache[language][fileName]) {
+          const response = await fetch(`./content/${language}/${fileName}`);
 
-        if (!response.ok) {
-          throw new Error(`Could not load content file: ${fileName}`);
+          if (!response.ok) {
+            throw new Error(`Could not load content file: ${fileName}`);
+          }
+
+          contentCache[language][fileName] = await response.text();
         }
 
-        contentElement.innerHTML = await response.text();
+        contentElement.innerHTML = contentCache[language][fileName];
       })
     );
   }

@@ -4,6 +4,8 @@ Sattuma is a collaborative digital and physical card game for imagining, discuss
 
 The digital version is designed for shared online play. Players can join the same room from different computers or tablets, see the same table state in real time, and discuss the cards together in local, remote, or hybrid settings.
 
+This repository contains the source code for the digital version of Sattuma, including the Node.js server, browser client, localized card content, interface translations, and project checks.
+
 ## Project Background
 
 Sattuma was developed as part of the Taiteet ja digi project, funded by the Finnish Ministry of Education and Culture for 2021-2023. It is a collaboration between Uniarts Helsinki and Aalto University.
@@ -12,7 +14,7 @@ The game was designed by Tomi Slotte Dufva, Senior University Lecturer at the Aa
 
 The broader project also includes participation from the University of Helsinki, Tampere University, the University of Turku, and Häme University of Applied Sciences. A physical set of cardboard Sattuma cards has also been produced and can be inquired about from the creators.
 
-## Current Status
+## Running Locally
 
 There is currently no confirmed public production URL for the digital game. The previous README referred to `https://www.sattuma.com`, but that address is no longer used by this project.
 
@@ -66,25 +68,6 @@ Room state is kept in server memory. This means rooms are temporary and reset if
 - Informational mobile view for screens that are too small for comfortable play.
 - Theme/background selector with contrast-aware labels and controls.
 - Formatted modal content for instructions, project information, and contacts.
-
-## Today's Revamp
-
-On 2026-04-14, the digital game received a substantial cleanup and gameplay revamp:
-
-- Dependency vulnerabilities were addressed.
-- The old external Sattuma/homepage button behavior was removed.
-- The Sattuma logo button now deals a random six-card situation.
-- The former shuffle/reset control was renamed to Start over / Aloita alusta.
-- Card shuffle and deal animations were improved.
-- Game A was tightened to follow the written rules more closely.
-- Replacement rounds now support replacing one existing table card with a new card from the same deck.
-- Optional round timers were added.
-- The instructions were rewritten in Finnish and English to match the implemented game flow.
-- The interface was made bilingual across desktop, tablet, and mobile informational views.
-- Room sharing was improved with copyable room links.
-- Visual layout, menus, modals, background themes, contrast, card text, dropzone labels, and notification messages were refined.
-- Code was reorganized into smaller client modules, localized content files, and deck text files.
-- Project checks were added for client modules, deck parity, and smoke testing.
 
 ## Project Structure
 
@@ -151,7 +134,7 @@ This game is distributed under the MIT License. See the `LICENSE` file for more 
 - Tomi Humalisto: [tomi.humalisto@uniarts.fi](mailto:tomi.humalisto@uniarts.fi)
 - Tiago Martins Pinto: [tiago.martins@aalto.fi](mailto:tiago.martins@aalto.fi)
 
-Project repository: [https://github.com/ptiagomp2/sattumacards](https://github.com/ptiagomp2/sattumacards)
+Repository: [https://github.com/tiagomartinspinto/sattumacards](https://github.com/tiagomartinspinto/sattumacards)
 
 Tiago Martins Pinto: [https://www.tiagomartinspinto.com](https://www.tiagomartinspinto.com)
 

@@ -46,6 +46,8 @@ export function createRoom({ socket, i18n, cards, showNotice }) {
   let serverClockOffset = 0;
   let timerInterval = null;
   let timerNoticeKey = "";
+  let cursorFrame = null;
+  const pendingCursorUpdates = new Map();
 
   function interpolate(template, values = {}) {
     return Object.entries(values).reduce(
@@ -75,7 +77,9 @@ export function createRoom({ socket, i18n, cards, showNotice }) {
       return;
     }
 
-    playersList.innerHTML = "";
+    playersList.textContent = "";
+    const fragment = document.createDocumentFragment();
+
     players.forEach((player) => {
       const playerElement = document.createElement("li");
       const colorDot = document.createElement("span");
@@ -93,8 +97,10 @@ export function createRoom({ socket, i18n, cards, showNotice }) {
         playerElement.appendChild(selfElement);
       }
 
-      playersList.appendChild(playerElement);
+      fragment.appendChild(playerElement);
     });
+
+    playersList.appendChild(fragment);
   }
 
   function copyRoomCode() {
@@ -289,25 +295,38 @@ export function createRoom({ socket, i18n, cards, showNotice }) {
     );
   }
 
+  function paintCursors() {
+    pendingCursorUpdates.forEach((data) => {
+      let cursor = document.getElementById(`cursor-${data.userId}`);
+
+      if (!cursor) {
+        cursor = document.createElement("div");
+        cursor.id = `cursor-${data.userId}`;
+        cursor.className = "cursor";
+
+        const label = document.createElement("span");
+        label.textContent = data.userName;
+        label.className = "cursor-label";
+        cursor.appendChild(label);
+        document.body.appendChild(cursor);
+      }
+
+      cursor.style.left = `${data.x}px`;
+      cursor.style.top = `${data.y}px`;
+      cursor.style.backgroundColor =
+        CURSOR_COLORS[Math.abs(hashCode(data.userId)) % CURSOR_COLORS.length];
+    });
+
+    pendingCursorUpdates.clear();
+    cursorFrame = null;
+  }
+
   function renderCursor(data) {
-    let cursor = document.getElementById(`cursor-${data.userId}`);
+    pendingCursorUpdates.set(data.userId, data);
 
-    if (!cursor) {
-      cursor = document.createElement("div");
-      cursor.id = `cursor-${data.userId}`;
-      cursor.className = "cursor";
-
-      const label = document.createElement("span");
-      label.textContent = data.userName;
-      label.className = "cursor-label";
-      cursor.appendChild(label);
-      document.body.appendChild(cursor);
+    if (!cursorFrame) {
+      cursorFrame = window.requestAnimationFrame(paintCursors);
     }
-
-    cursor.style.left = `${data.x}px`;
-    cursor.style.top = `${data.y}px`;
-    cursor.style.backgroundColor =
-      CURSOR_COLORS[Math.abs(hashCode(data.userId)) % CURSOR_COLORS.length];
   }
 
   function initCursorSharing() {
@@ -343,6 +362,12 @@ export function createRoom({ socket, i18n, cards, showNotice }) {
       cards.updateCardText(cardId, text);
     });
 
+    socket.on("allCardTexts", ({ texts = {} }) => {
+      Object.entries(texts).forEach(([cardId, text]) => {
+        cards.updateCardText(cardId, text);
+      });
+    });
+
     socket.on("flipCard", ({ cardId, isFlipped }) => {
       document.getElementById(cardId)?.classList.toggle("flip", Boolean(isFlipped));
     });
@@ -355,6 +380,7 @@ export function createRoom({ socket, i18n, cards, showNotice }) {
       const resetBoard = () => {
         cards.resetDeckElements();
         cards.applyBoardState(payload.boardState);
+        cards.refreshTexts();
       };
 
       if (payload.animate) {
@@ -384,6 +410,7 @@ export function createRoom({ socket, i18n, cards, showNotice }) {
 
     socket.on("cursorUpdate", renderCursor);
     socket.on("playerDisconnected", (disconnectedUserName) => {
+      pendingCursorUpdates.delete(disconnectedUserName);
       document.getElementById(`cursor-${disconnectedUserName}`)?.remove();
     });
   }

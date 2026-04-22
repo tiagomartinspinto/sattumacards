@@ -26,17 +26,16 @@ function formatCardText(text) {
 }
 
 export function createCards({ socket, i18n, showNotice }) {
-  const decks = document.querySelectorAll(".deck");
-  const dropzones = document.querySelectorAll(".dropzone");
+  const decks = [...document.querySelectorAll(".deck")];
+  const dropzones = [...document.querySelectorAll(".dropzone")];
   const resetButton = document.getElementById("resetBtn");
   const quickDealButton = document.getElementById("quickDealBtn");
+  const cardElements = new Map();
+  let allCards = [];
+  let cardClickBound = false;
 
-  function requestCardText(deckId, card) {
-    socket.emit("requestCardText", {
-      deckId,
-      cardId: card.id,
-      language: i18n.language,
-    });
+  function getAllCards() {
+    return allCards;
   }
 
   function createCard(deckElement, deckId, cardIndex) {
@@ -58,40 +57,37 @@ export function createCards({ socket, i18n, showNotice }) {
     back.style = `background-image: url('./front_card_img/${deck.image}'); background-size: cover; background-color: white;`;
 
     card.append(front, back);
-    deckElement.appendChild(card);
-    requestCardText(deckId, card);
-
-    card.addEventListener("click", () => {
-      if (card.closest(".dropzone")) {
-        socket.emit("requestFlipCard", { cardId: card.id });
-        return;
-      }
-
-      showNotice(i18n.t("oneCardTitle"), i18n.t("oneCardMessage"));
-    });
+    cardElements.set(card.id, card);
+    return card;
   }
 
   function createDeck(deckElement) {
     const deckId = deckElement.dataset.deckId;
+    const fragment = document.createDocumentFragment();
 
     for (let cardIndex = 0; cardIndex < CARD_COUNT; cardIndex++) {
-      createCard(deckElement, deckId, cardIndex);
+      fragment.appendChild(createCard(deckElement, deckId, cardIndex));
     }
+
+    deckElement.appendChild(fragment);
   }
 
   function createDecks() {
     decks.forEach(createDeck);
+    allCards = [...cardElements.values()];
 
     window.setTimeout(() => {
-      document.querySelectorAll(".card").forEach((card) => {
+      getAllCards().forEach((card) => {
         card.classList.remove("initial-animation");
       });
     }, DEAL_ANIMATION_DURATION);
   }
 
   function clearBoard() {
-    decks.forEach((deck) => (deck.innerHTML = ""));
-    dropzones.forEach((dropzone) => (dropzone.innerHTML = ""));
+    cardElements.clear();
+    allCards = [];
+    decks.forEach((deck) => (deck.textContent = ""));
+    dropzones.forEach((dropzone) => (dropzone.textContent = ""));
   }
 
   function resetDeckElements() {
@@ -100,7 +96,7 @@ export function createCards({ socket, i18n, showNotice }) {
   }
 
   function applyBoardState(boardState = {}) {
-    document.querySelectorAll(".card").forEach((card) => {
+    getAllCards().forEach((card) => {
       card.classList.remove("flip");
     });
 
@@ -128,7 +124,7 @@ export function createCards({ socket, i18n, showNotice }) {
   }
 
   function prepareShuffleAnimation() {
-    document.querySelectorAll(".card").forEach((card, index) => {
+    getAllCards().forEach((card, index) => {
       const direction = index % 2 === 0 ? 1 : -1;
       const sweep = 36 + (index % 5) * 8;
       const lift = 44 + (index % 3) * 14;
@@ -165,13 +161,11 @@ export function createCards({ socket, i18n, showNotice }) {
   }
 
   function refreshTexts() {
-    document.querySelectorAll(".card").forEach((card) => {
-      requestCardText(card.dataset.deckId, card);
-    });
+    socket.emit("requestAllCardTexts", { language: i18n.language });
   }
 
   function updateCardText(cardId, text) {
-    const card = document.getElementById(cardId);
+    const card = cardElements.get(cardId) || document.getElementById(cardId);
     const back = card?.querySelector(".back");
 
     if (back) {
@@ -180,8 +174,34 @@ export function createCards({ socket, i18n, showNotice }) {
   }
 
   function removeCard(cardId) {
-    document.getElementById(cardId)?.remove();
+    cardElements.get(cardId)?.remove();
+    cardElements.delete(cardId);
+    allCards = allCards.filter((card) => card.id !== cardId);
   }
+
+  function bindCardClickHandler() {
+    if (cardClickBound) {
+      return;
+    }
+
+    document.addEventListener("click", (event) => {
+      const card = event.target.closest?.(".card");
+
+      if (!card) {
+        return;
+      }
+
+      if (card.closest(".dropzone")) {
+        socket.emit("requestFlipCard", { cardId: card.id });
+        return;
+      }
+
+      showNotice(i18n.t("oneCardTitle"), i18n.t("oneCardMessage"));
+    });
+    cardClickBound = true;
+  }
+
+  bindCardClickHandler();
 
   return {
     applyBoardState,
