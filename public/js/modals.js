@@ -1,6 +1,16 @@
 export function initModals() {
   const menuIcon = document.querySelector(".menu-icon");
   const menuContent = document.getElementById("menuContent");
+  const focusableSelector = [
+    "a[href]",
+    "button:not([disabled])",
+    "textarea:not([disabled])",
+    "input:not([disabled])",
+    "select:not([disabled])",
+    "[tabindex]:not([tabindex='-1'])",
+  ].join(", ");
+  let activeModalId = "";
+  let lastFocusedElement = null;
 
   function closeMenu() {
     if (!menuIcon || !menuContent) {
@@ -23,12 +33,29 @@ export function initModals() {
     menuContent.style.display = isOpen ? "none" : "block";
   }
 
-  function openModal(modalId) {
+  function getFocusableElements(modal) {
+    return [...modal.querySelectorAll(focusableSelector)].filter(
+      (element) => !element.hasAttribute("hidden")
+    );
+  }
+
+  function openModal(modalId, triggerElement = document.activeElement) {
     const modal = document.getElementById(modalId);
 
     if (modal) {
+      activeModalId = modalId;
+      lastFocusedElement = triggerElement || null;
+      modal.setAttribute("aria-hidden", "false");
       modal.style.display = "block";
       closeMenu();
+
+      const focusableElements = getFocusableElements(modal);
+      const initialFocusElement =
+        focusableElements.find((element) => element.matches("[data-modal-close]")) ||
+        focusableElements[0] ||
+        modal.querySelector(".modal-content");
+
+      initialFocusElement?.focus();
     }
   }
 
@@ -36,7 +63,14 @@ export function initModals() {
     const modal = document.getElementById(modalId);
 
     if (modal) {
+      if (activeModalId === modalId) {
+        activeModalId = "";
+      }
+
+      modal.setAttribute("aria-hidden", "true");
       modal.style.display = "none";
+      lastFocusedElement?.focus?.();
+      lastFocusedElement = null;
     }
   }
 
@@ -55,7 +89,7 @@ export function initModals() {
     const closeTrigger = event.target.closest?.("[data-modal-close]");
 
     if (openTrigger) {
-      openModal(openTrigger.dataset.modalTarget);
+      openModal(openTrigger.dataset.modalTarget, openTrigger);
     }
 
     if (closeTrigger) {
@@ -64,15 +98,50 @@ export function initModals() {
   });
 
   document.addEventListener("keydown", (event) => {
-    if (event.key !== "Enter" && event.key !== " ") {
+    if (event.key === "Escape") {
+      if (activeModalId) {
+        event.preventDefault();
+        closeModal(activeModalId);
+        return;
+      }
+
+      closeMenu();
       return;
     }
 
-    const openTrigger = event.target.closest?.("[data-modal-target]");
-
-    if (openTrigger) {
+    if ((event.key === "Enter" || event.key === " ") && event.target.closest?.("[data-modal-target]")) {
+      const openTrigger = event.target.closest("[data-modal-target]");
       event.preventDefault();
-      openModal(openTrigger.dataset.modalTarget);
+      openModal(openTrigger.dataset.modalTarget, openTrigger);
+      return;
+    }
+
+    if (event.key !== "Tab" || !activeModalId) {
+      return;
+    }
+
+    const activeModal = document.getElementById(activeModalId);
+    const focusableElements = activeModal ? getFocusableElements(activeModal) : [];
+
+    if (focusableElements.length === 0) {
+      event.preventDefault();
+      activeModal?.querySelector(".modal-content")?.focus();
+      return;
+    }
+
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+    const isShiftTab = event.shiftKey;
+
+    if (isShiftTab && document.activeElement === firstElement) {
+      event.preventDefault();
+      lastElement.focus();
+      return;
+    }
+
+    if (!isShiftTab && document.activeElement === lastElement) {
+      event.preventDefault();
+      firstElement.focus();
     }
   });
 

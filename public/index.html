@@ -45,41 +45,91 @@
           </ul>
         </div>
       </div>
-      <div id="instructionsModal" class="modal">
-        <div class="modal-content">
-          <button class="close" type="button" data-modal-close="instructionsModal">
+      <div id="instructionsModal" class="modal" aria-hidden="true">
+        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="instructionsModalTitle" tabindex="-1">
+          <button class="close" type="button" data-modal-close="instructionsModal" aria-label="Sulje ikkuna">
             &times;
           </button>
-          <h2 data-i18n="modalInstructionsTitle">//Pelin ohjeet</h2>
+          <h2 id="instructionsModalTitle" data-i18n="modalInstructionsTitle">//Pelin ohjeet</h2>
           <div id="instructionsContent" class="modal-copy">
             <!-- Instructions content will be loaded here -->
           </div>
         </div>
       </div>
-      <div id="historyModal" class="modal">
-        <div class="modal-content">
-          <button class="close" type="button" data-modal-close="historyModal">
+      <div id="historyModal" class="modal" aria-hidden="true">
+        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="historyModalTitle" tabindex="-1">
+          <button class="close" type="button" data-modal-close="historyModal" aria-label="Sulje ikkuna">
             &times;
           </button>
-          <h2 data-i18n="modalMoreInfoTitle">//Lisätietoa</h2>
+          <h2 id="historyModalTitle" data-i18n="modalMoreInfoTitle">//Lisätietoa</h2>
           <div id="historyContent" class="modal-copy">
             <!-- History content will be loaded here -->
           </div>
         </div>
       </div>
-      <div id="contactsModal" class="modal">
-        <div class="modal-content">
-          <button class="close" type="button" data-modal-close="contactsModal">
+      <div id="contactsModal" class="modal" aria-hidden="true">
+        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="contactsModalTitle" tabindex="-1">
+          <button class="close" type="button" data-modal-close="contactsModal" aria-label="Sulje ikkuna">
             &times;
           </button>
-          <h2 data-i18n="modalContactsTitle">//Yhteystiedot</h2>
+          <h2 id="contactsModalTitle" data-i18n="modalContactsTitle">//Yhteystiedot</h2>
           <div id="contactsContent" class="modal-copy">
             <!-- Contacts content will be loaded here -->
           </div>
         </div>
       </div>
+
+    <section id="landingScreen" class="landing-screen" aria-labelledby="landingTitle">
+      <img src="./imgs/sattuma-text-img.webp" alt="Sattuma" class="landing-logo" />
+      <p class="landing-kicker" data-i18n="landingKicker">Shared room card game</p>
+      <h1 id="landingTitle" data-i18n="landingTitle">Start a room or join with a code</h1>
+      <p class="landing-intro" data-i18n="landingIntro">
+        Create a new room for your group or join an existing room with a shared code.
+      </p>
+      <div class="landing-actions">
+        <button
+          class="button-arounder landing-primary-button"
+          id="createRoomBtn"
+          type="button"
+          data-i18n="createRoomButton"
+          data-i18n-title="createRoomButton"
+          data-i18n-aria-label="createRoomButton"
+        >
+          Create room
+        </button>
+
+        <form id="joinRoomForm" class="join-room-form">
+          <label for="joinRoomCode" data-i18n="joinRoomLabel">Room code</label>
+          <div class="join-room-row">
+            <input
+              id="joinRoomCode"
+              name="room"
+              type="text"
+              maxlength="12"
+              autocapitalize="characters"
+              autocomplete="off"
+              spellcheck="false"
+              data-i18n-placeholder="joinRoomPlaceholder"
+              placeholder="Enter room code"
+            />
+            <button
+              class="button-arounder landing-secondary-button"
+              type="submit"
+              data-i18n="joinRoomButton"
+              data-i18n-title="joinRoomButton"
+              data-i18n-aria-label="joinRoomButton"
+            >
+              Join room
+            </button>
+          </div>
+        </form>
+      </div>
+      <p class="landing-note" data-i18n="landingNote">
+        Room state is temporary and stays only in server memory.
+      </p>
+    </section>
       
-    <main class="game-board-shell" aria-label="Sattuma-pelipöytä" data-i18n-aria-label="boardLabel">
+    <main class="game-board-shell" id="gameBoardShell" aria-label="Sattuma-pelipöytä" data-i18n-aria-label="boardLabel" hidden>
       <div class="play-area">
         <div class="title">
           <img src="./imgs/sattuma-text-img.webp" alt="Sattuma" class="title-image"/>
@@ -215,6 +265,17 @@
               data-i18n-aria-label="startReplacement"
             >
               Aloita vaihtokierros
+            </button>
+            <button
+              class="copy-room-button copy-results-button"
+              id="copyResultsBtn"
+              type="button"
+              disabled
+              data-i18n="copyResults"
+              data-i18n-title="copyResults"
+              data-i18n-aria-label="copyResults"
+            >
+              Kopioi tilanteen teksti
             </button>
           </div>
           <div class="player-list-heading" data-i18n="playersOnline">Paikalla</div>

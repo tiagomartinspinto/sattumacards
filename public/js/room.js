@@ -38,9 +38,10 @@ function throttle(callback, limit) {
   };
 }
 
-export function createRoom({ socket, i18n, cards, showNotice }) {
+export function createRoom({ socket, i18n, cards, showNotice, onJoinFailure, onRoomReady }) {
   let roomCode = "";
   let userName = "";
+  let roomReady = false;
   let lastPlayers = [];
   let lastGameState = null;
   let serverClockOffset = 0;
@@ -139,6 +140,14 @@ export function createRoom({ socket, i18n, cards, showNotice }) {
       return;
     }
 
+    const confirmationMessage = `${i18n.t("confirmResetTitle")}\n\n${i18n.t(
+      "confirmResetMessage"
+    )}`;
+
+    if (!window.confirm(confirmationMessage)) {
+      return;
+    }
+
     if (resetButton) {
       resetButton.disabled = true;
       resetButton.classList.add("is-loading");
@@ -156,6 +165,14 @@ export function createRoom({ socket, i18n, cards, showNotice }) {
       return;
     }
 
+    const confirmationMessage = `${i18n.t("confirmDealTitle")}\n\n${i18n.t(
+      "confirmDealMessage"
+    )}`;
+
+    if (!window.confirm(confirmationMessage)) {
+      return;
+    }
+
     if (quickDealButton) {
       quickDealButton.disabled = true;
       quickDealButton.classList.add("is-loading");
@@ -168,6 +185,29 @@ export function createRoom({ socket, i18n, cards, showNotice }) {
 
   function startReplacementRound() {
     socket.emit("startReplacementPhase");
+  }
+
+  function copyResults() {
+    const scenarioText = cards.getScenarioText();
+
+    if (!scenarioText) {
+      showNotice(i18n.t("copyResultsEmptyTitle"), i18n.t("copyResultsEmptyMessage"));
+      return;
+    }
+
+    if (!navigator.clipboard) {
+      showNotice(i18n.t("copyResultsTitle"), scenarioText);
+      return;
+    }
+
+    navigator.clipboard
+      .writeText(scenarioText)
+      .then(() => {
+        showNotice(i18n.t("copyResultsSuccessTitle"), i18n.t("copyResultsSuccessMessage"));
+      })
+      .catch(() => {
+        showNotice(i18n.t("copyResultsTitle"), scenarioText);
+      });
   }
 
   function setTimerDuration(durationSeconds) {
@@ -278,12 +318,14 @@ export function createRoom({ socket, i18n, cards, showNotice }) {
       return;
     }
 
+    const previousHostPlayer = lastGameState?.hostPlayer || "";
     lastGameState = gameState;
     serverClockOffset = gameState.serverNow ? gameState.serverNow - Date.now() : 0;
 
     const phaseLabel = document.getElementById("gamePhaseLabel");
     const turnHelp = document.getElementById("gameTurnHelp");
     const replacementButton = document.getElementById("startReplacementBtn");
+    const copyResultsButton = document.getElementById("copyResultsBtn");
 
     if (phaseLabel) {
       phaseLabel.textContent = i18n.t(getPhaseLabelKey(gameState.phase));
@@ -300,6 +342,21 @@ export function createRoom({ socket, i18n, cards, showNotice }) {
       replacementButton.textContent = i18n.t(getReplacementButtonKey(gameState));
       replacementButton.setAttribute("title", i18n.t(getReplacementButtonKey(gameState)));
       replacementButton.setAttribute("aria-label", i18n.t(getReplacementButtonKey(gameState)));
+    }
+
+    if (copyResultsButton) {
+      copyResultsButton.disabled = gameState.tableCardCount === 0;
+    }
+
+    if (
+      previousHostPlayer &&
+      gameState.hostPlayer &&
+      previousHostPlayer !== gameState.hostPlayer
+    ) {
+      showNotice(
+        i18n.t("hostChangedTitle"),
+        interpolate(i18n.t("hostChangedMessage"), { player: gameState.hostPlayer })
+      );
     }
 
     setManagementControlsDisabled(!gameState.canManageRoom);
@@ -435,8 +492,14 @@ export function createRoom({ socket, i18n, cards, showNotice }) {
       const url = new URL(window.location.href);
       url.searchParams.set("room", roomCode);
       url.searchParams.set("lang", i18n.language);
+      url.searchParams.delete("create");
       window.history.replaceState({}, "", url);
       updateRoomCodeDisplay(roomCode);
+
+      if (!roomReady) {
+        roomReady = true;
+        onRoomReady?.({ roomCode, userName });
+      }
     });
 
     socket.on("sessionInfo", ({ playerSessionId }) => {
@@ -456,6 +519,7 @@ export function createRoom({ socket, i18n, cards, showNotice }) {
     socket.on("connect_error", (error) => {
       const key = error?.data?.key || "serverBusy";
       showRejectedAction({ key });
+      onJoinFailure?.({ key, roomCode });
     });
 
     socket.on("disconnect", (reason) => {
@@ -481,6 +545,7 @@ export function createRoom({ socket, i18n, cards, showNotice }) {
   initCursorSharing();
 
   return {
+    copyResults,
     copyRoomCode,
     refreshLabels,
     requestRandomSituation,

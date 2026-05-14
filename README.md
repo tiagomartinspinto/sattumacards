@@ -15,8 +15,9 @@ Players use six card decks to build a shared teaching scenario:
 
 The app supports two main ways to begin:
 
-1. Draw cards manually onto the table.
-2. Use the random deal button to create a six-card situation automatically.
+1. Create a room or join one from the landing screen.
+2. Draw cards manually onto the table.
+3. Use the random deal button to create a six-card situation automatically.
 
 After the table is filled, the group discusses the scenario and can continue with replacement rounds in which one card is swapped for a new card from the same deck.
 
@@ -52,9 +53,17 @@ http://localhost:4000
 - Players in the same room share the same synchronized table state.
 - The first player to join a room becomes the host.
 - Only the host can start over, deal a random situation, change the timer, or start a replacement round.
+- Before reset and random deal actions, the host is asked for confirmation because those actions replace the shared state for everyone in the room.
 - Room state is temporary and stored in server memory.
 - An opaque browser session token helps the same browser reconnect to its previous player slot after a refresh or short connection drop.
+- If the host disconnects, host control temporarily moves to the next connected player so the room can keep going. If the original host reconnects within the reconnect grace window, host control returns to that browser.
 - Empty rooms are automatically cleaned up after inactivity.
+
+## Sharing and export
+
+- The landing screen lets facilitators create a room and participants join one with a short room code.
+- The game room includes a copy-room-link action for inviting others.
+- The current table can be copied as plain text so the final scenario can be pasted into workshop notes or external documents.
 
 ## Privacy and data note
 
@@ -94,19 +103,21 @@ Run the built-in project checks with:
 npm run check
 ```
 
-These checks validate server syntax, client module syntax, deck parity, and a smoke-test file set.
+These checks validate server syntax, client module syntax, deck parity, a smoke-test file set, and automated multiplayer tests for host permissions, reconnects, invalid payloads, disconnect handling, and rate limiting.
 
 ## Project structure
 
 ```text
-server.js                  Express and Socket.IO server
-public/index.html          Main game interface
+server.js                  Runtime entrypoint
+server/                    Config, HTTP app, socket server, validators, room service
+public/index.html          Landing screen and main game interface
 public/gameA.css           Main styling
 public/js/                 Client-side modules
 public/i18n/               Interface translations
 public/content/            Localized modal content
 public/cards/              Localized deck text files
 scripts/                   Local validation scripts
+tests/                     Automated multiplayer tests
 ```
 
 ## License

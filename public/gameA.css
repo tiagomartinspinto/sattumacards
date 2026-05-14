@@ -38,11 +38,102 @@ body {
   box-sizing: border-box;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 .game-board-shell {
   align-items: center;
   display: flex;
   flex-direction: column;
   width: 100%;
+}
+
+.landing-screen {
+  width: min(720px, calc(100vw - 32px));
+  background: var(--surface-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 18px 44px var(--shadow-color);
+  padding: 32px 28px;
+  text-align: center;
+}
+
+.landing-logo {
+  display: block;
+  height: auto;
+  margin: 0 auto 18px;
+  max-width: min(320px, 72vw);
+}
+
+.landing-kicker {
+  color: var(--control-muted);
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0 0 10px;
+  text-transform: uppercase;
+}
+
+.landing-screen h1 {
+  color: var(--control-text);
+  font-size: 30px;
+  margin: 0 0 14px;
+}
+
+.landing-intro,
+.landing-note {
+  color: var(--control-muted);
+  font-size: 16px;
+  line-height: 1.55;
+  margin: 0 auto;
+  max-width: 56ch;
+}
+
+.landing-actions {
+  display: grid;
+  gap: 18px;
+  margin: 28px auto 18px;
+  max-width: 520px;
+}
+
+.join-room-form {
+  display: grid;
+  gap: 10px;
+  text-align: left;
+}
+
+.join-room-form label {
+  color: var(--control-muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.join-room-row {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.join-room-row input {
+  background-color: var(--control-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--control-text);
+  font-size: 15px;
+  font-weight: 700;
+  min-height: 46px;
+  padding: 0 14px;
+  text-transform: uppercase;
+}
+
+.join-room-row input::placeholder {
+  color: var(--control-muted);
+}
+
+.landing-primary-button,
+.landing-secondary-button {
+  min-height: 46px;
+  padding: 0 18px;
 }
 
 .play-area {
@@ -111,7 +202,8 @@ body {
     width: 42px;
   }
   .menu-icon:hover,
-  .menu-icon:focus {
+  .menu-icon:focus,
+  .menu-icon:focus-visible {
     background-color: var(--control-hover-bg);
     box-shadow: 0 12px 24px var(--shadow-color);
     outline: none;
@@ -175,7 +267,8 @@ body {
     display: block;
   }
   .menu-content ul li:hover,
-  .menu-content ul li:focus {
+  .menu-content ul li:focus,
+  .menu-content ul li:focus-visible {
     background-color: var(--accent-color);
     color: var(--accent-text);
     outline: none;
@@ -250,7 +343,8 @@ body {
     text-decoration: none;
   }
   .modal-copy a:hover,
-  .modal-copy a:focus {
+  .modal-copy a:focus,
+  .modal-copy a:focus-visible {
     text-decoration: underline;
   }
   .contact-list {
@@ -294,6 +388,10 @@ body {
     color: var(--accent-text);
     text-decoration: none;
     cursor: pointer;
+  }
+  .close:focus-visible {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
   }
 /* ----------------------------------------- */  
 
@@ -887,6 +985,15 @@ img {
   transform: none;
 }
 
+.copy-room-button:focus-visible,
+.join-room-row input:focus-visible,
+.language-switcher select:focus-visible,
+#backgroundColorSelector:focus-visible,
+#roundTimerSelector:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
 .room-code-row {
   align-items: baseline;
   display: flex;
@@ -911,6 +1018,10 @@ img {
   border-top: 1px solid rgba(255, 255, 255, 0.12);
   margin-top: 12px;
   padding-top: 12px;
+}
+
+.copy-results-button {
+  margin-top: 10px;
 }
 
 .game-flow-eyebrow,
@@ -1281,4 +1392,18 @@ img {
   color: black;
   background-color: lightgrey;
   font-family: "Roboto", sans-serif;
+}
+
+@media (max-width: 640px) {
+  .landing-screen {
+    padding: 24px 18px;
+  }
+
+  .landing-screen h1 {
+    font-size: 24px;
+  }
+
+  .join-room-row {
+    grid-template-columns: 1fr;
+  }
 }

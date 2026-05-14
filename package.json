@@ -4,12 +4,14 @@
   "description": "Collaborative bilingual card game for exploring teaching situations in shared multiplayer rooms",
   "main": "server.js",
   "scripts": {
-    "check": "node --check server.js && node scripts/check-client-modules.js && npm run check:decks && npm run smoke",
+    "check": "npm run check:server && node scripts/check-client-modules.js && npm run check:decks && npm run smoke && npm run test:multiplayer",
     "check:decks": "node scripts/check-decks.js",
+    "check:server": "node scripts/check-server-modules.js",
     "dev": "node --watch server.js",
     "lint": "npm run check",
     "smoke": "node scripts/smoke-check.js",
-    "test": "npm run check",
+    "test": "npm run test:multiplayer",
+    "test:multiplayer": "node --test tests/*.test.js",
     "start": "node server.js"
   },
   "keywords": [],
@@ -20,6 +22,9 @@
     "express": "^4.18.2",
     "helmet": "^8.1.0",
     "socket.io": "^4.7.4"
+  },
+  "devDependencies": {
+    "socket.io-client": "^4.7.4"
   },
   "repository": {
     "type": "git",

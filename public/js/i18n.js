@@ -45,6 +45,7 @@ export function createI18n() {
       translationTargets = {
         text: [...document.querySelectorAll("[data-i18n]")],
         html: [...document.querySelectorAll("[data-i18n-html]")],
+        placeholder: [...document.querySelectorAll("[data-i18n-placeholder]")],
         title: [...document.querySelectorAll("[data-i18n-title]")],
         ariaLabel: [...document.querySelectorAll("[data-i18n-aria-label]")],
       };
@@ -69,13 +70,17 @@ export function createI18n() {
       element.textContent = t(element.dataset.i18n);
     });
 
-    targets.html.forEach((element) => {
-      element.innerHTML = t(element.dataset.i18nHtml);
-    });
+      targets.html.forEach((element) => {
+        element.innerHTML = t(element.dataset.i18nHtml);
+      });
 
-    targets.title.forEach((element) => {
-      element.setAttribute("title", t(element.dataset.i18nTitle));
-    });
+      targets.placeholder.forEach((element) => {
+        element.setAttribute("placeholder", t(element.dataset.i18nPlaceholder));
+      });
+
+      targets.title.forEach((element) => {
+        element.setAttribute("title", t(element.dataset.i18nTitle));
+      });
 
     targets.ariaLabel.forEach((element) => {
       element.setAttribute("aria-label", t(element.dataset.i18nAriaLabel));

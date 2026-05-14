@@ -33,6 +33,7 @@ export function createCards({ socket, i18n, showNotice }) {
   const resetButton = document.getElementById("resetBtn");
   const quickDealButton = document.getElementById("quickDealBtn");
   const cardElements = new Map();
+  const cardTextValues = new Map();
   let allCards = [];
   let cardClickBound = false;
 
@@ -99,6 +100,7 @@ export function createCards({ socket, i18n, showNotice }) {
 
   function clearBoard() {
     cardElements.clear();
+    cardTextValues.clear();
     allCards = [];
     decks.forEach((deck) => (deck.textContent = ""));
     dropzones.forEach((dropzone) => (dropzone.textContent = ""));
@@ -205,6 +207,7 @@ export function createCards({ socket, i18n, showNotice }) {
     const back = card?.querySelector(".back");
 
     if (back) {
+      cardTextValues.set(cardId, text);
       back.textContent = formatCardText(text);
     }
   }
@@ -212,7 +215,29 @@ export function createCards({ socket, i18n, showNotice }) {
   function removeCard(cardId) {
     cardElements.get(cardId)?.remove();
     cardElements.delete(cardId);
+    cardTextValues.delete(cardId);
     allCards = allCards.filter((card) => card.id !== cardId);
+  }
+
+  function getScenarioText() {
+    const lines = DECKS.map((deck) => {
+      const dropzone = document.getElementById(`dropzone-${deck.id}`);
+      const card = dropzone?.querySelector(".card");
+
+      if (!card) {
+        return null;
+      }
+
+      const text = cardTextValues.get(card.id);
+
+      if (!text) {
+        return null;
+      }
+
+      return `${i18n.t(deck.labelKey)}: ${text}`;
+    }).filter(Boolean);
+
+    return lines.join("\n");
   }
 
   function bindCardClickHandler() {
@@ -247,6 +272,7 @@ export function createCards({ socket, i18n, showNotice }) {
     refreshTexts,
     removeCard,
     resetDeckElements,
+    getScenarioText,
     updateCardText,
   };
 }
