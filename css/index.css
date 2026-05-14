@@ -67,7 +67,8 @@ button {
   --dur: 0.1s;
   --delay: 0.1s;
   --radius: 16px;
-  transition: border-radius var(--dur) var(--delay) ease-out,
+  transition:
+    border-radius var(--dur) var(--delay) ease-out,
     box-shadow calc(var(--dur) * 4) ease-out,
     transform calc(var(--dur) * 4) ease-out;
 }
@@ -177,7 +178,9 @@ button {
   color: white;
   opacity: 0.7;
   width: 80%;
-  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  box-shadow:
+    0 4px 8px 0 rgba(0, 0, 0, 0.2),
+    0 6px 20px 0 rgba(0, 0, 0, 0.19);
   font-family: "Roboto", sans-serif;
 }
 .close {

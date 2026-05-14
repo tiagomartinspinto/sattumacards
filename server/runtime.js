@@ -4,6 +4,7 @@ const { createConfig } = require("./config");
 const { createDeckStore } = require("./deck-store");
 const { createHttpApp } = require("./http-app");
 const { createLogger } = require("./logger");
+const { createRoomStore } = require("./room-store");
 const { createRoomService } = require("./room-service");
 const { createGameSocketServer } = require("./socket-server");
 const { createValidators } = require("./validators");
@@ -35,26 +36,38 @@ function createRuntime(overrides = {}) {
   const config = createConfig(overrides.config);
   const logger = createLogger(config.LOG_LEVEL);
   const deckStore = createDeckStore(config, logger);
+  const roomStore = createRoomStore({ config, logger });
   const validators = createValidators(config);
   const roomService = createRoomService({
     config,
     deckStore,
     logger,
+    roomStore,
     validators,
   });
+  let socketServer = null;
   const app = createHttpApp({
     config,
+    getDebugState: () => ({
+      ...roomService.getDebugSnapshot(),
+      socket: socketServer?.getDebugSnapshot() || {
+        currentSockets: 0,
+        rateLimitHits: {},
+        totalConnections: 0,
+      },
+    }),
     logger,
     getRoomCount: () => roomService.getRoomCount(),
   });
   const server = http.createServer(app);
-  const io = createGameSocketServer({
+  socketServer = createGameSocketServer({
     server,
     config,
     logger,
     roomService,
     validators,
   });
+  const io = socketServer.io;
 
   registerProcessErrorLogging(logger);
 
@@ -64,6 +77,7 @@ function createRuntime(overrides = {}) {
     deckStore,
     io,
     logger,
+    roomStore,
     roomService,
     server,
     validators,

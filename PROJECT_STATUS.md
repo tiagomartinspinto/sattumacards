@@ -2,92 +2,105 @@
 
 ## Completed in this session
 
-- Split the backend into smaller modules under `server/`:
-  - `config.js`
-  - `logger.js`
-  - `http-app.js`
-  - `validators.js`
-  - `deck-store.js`
-  - `room-service.js`
-  - `socket-server.js`
-  - `runtime.js`
-- Reduced `server.js` to a small runtime entrypoint.
-- Kept the previously added hardening in place: `helmet`, `compression`, self-only CSP, structured logging, Socket.IO rate limiting, host permissions, `/health`, room limits, and crypto-based room codes.
-- Added automated multiplayer tests for:
-  - host-only actions
-  - reconnect and host reclaim behavior
-  - invalid payload rejection
-  - disconnect during a pending turn
-  - Socket.IO rate limiting
-- Added a simple landing screen for creating a new room or joining an existing room by code.
-- Added copy/export of the current table as plain text.
-- Added host confirmation prompts before reset and random-deal actions.
-- Improved reconnect and host-transfer behavior:
-  - when the host disconnects, host control moves to the next connected player so the room can continue
-  - if the original host reconnects with the same browser session during the reconnect grace window, host control returns to that browser
-- Improved modal accessibility with Escape close, focus trapping, and focus return.
-- Extended project checks so `npm run check` now covers server module syntax and automated multiplayer tests.
-- Updated `README.md` to document the landing flow, export support, automated tests, and the chosen host-transfer logic.
-- Ran `npm run check` successfully after the second pass.
-- Scanned project files for unwanted vendor/tool references and found no remaining matches for the requested terms.
+- Added real ESLint and Prettier tooling:
+  - `eslint.config.js`
+  - `.prettierrc.json`
+  - `.prettierignore`
+  - package scripts for linting, fixing, formatting, and format checks
+- Added Playwright browser-level tests for:
+  - landing flow and multiplayer join
+  - drag/drop plus card flip sync
+  - modal keyboard focus trap and Escape close
+  - reconnect notice flow
+  - mobile observer mode
+- Added deployment examples and docs:
+  - `Dockerfile`
+  - `.dockerignore`
+  - `render.yaml`
+  - `fly.toml`
+  - `deployment/README.md`
+  - `deployment/sattuma.service`
+- Added semantic-versioning support in project docs:
+  - bumped `package.json` version to `1.1.0`
+  - added `CHANGELOG.md`
+  - surfaced the app version in the UI footer
+- Added a development-only debug panel backed by `/debug/state`, showing:
+  - active rooms
+  - active players
+  - reconnect reservations
+  - Socket.IO rate-limit hits
+- Added a mobile observer mode for smaller screens so participants can:
+  - follow room code and game phase
+  - read current table cards
+  - follow the player list and active turn
+- Added optional storage scaffolding:
+  - default memory mode remains unchanged
+  - optional SQLite-backed room persistence is available behind environment variables and disabled by default
+- Tightened the modal focus return behavior so opening a modal from the menu returns focus to the menu button instead of a hidden menu item.
+- Updated `README.md`, `.env.example`, and CI to reflect the new tooling, deployment flow, storage options, and test requirements.
+- Re-ran multiplayer tests and Playwright tests successfully after the new changes.
+- Re-scanned project files for accidental vendor/tool wording and kept the requested terms out of the tracked project files.
 
 ## Files changed
 
-- `server/config.js`
-- `server/logger.js`
-- `server/http-app.js`
-- `server/validators.js`
-- `server/deck-store.js`
-- `server/room-service.js`
-- `server/socket-server.js`
-- `server/runtime.js`
-- `scripts/check-server-modules.js`
-- `tests/multiplayer.test.js`
+- `eslint.config.js`
+- `.prettierrc.json`
+- `.prettierignore`
+- `CHANGELOG.md`
 - `README.md`
 - `PROJECT_STATUS.md`
+- `.env.example`
+- `.dockerignore`
+- `Dockerfile`
+- `render.yaml`
+- `fly.toml`
+- `deployment/README.md`
+- `deployment/sattuma.service`
+- `.github/workflows/ci.yml`
 - `package.json`
 - `package-lock.json`
-- `server.js`
-- `.env.example`
-- `.editorconfig`
-- `SECURITY.md`
-- `.github/workflows/ci.yml`
-- `.github/dependabot.yml`
+- `server/config.js`
+- `server/http-app.js`
+- `server/logger.js`
+- `server/room-service.js`
+- `server/room-store.js`
+- `server/runtime.js`
+- `server/socket-server.js`
 - `public/index.html`
 - `public/gameA.css`
+- `public/js/app-shell.js`
 - `public/js/gameA.js`
 - `public/js/room.js`
 - `public/js/cards.js`
 - `public/js/modals.js`
-- `public/js/i18n.js`
 - `public/i18n/en.json`
 - `public/i18n/fi.json`
+- `playwright.config.js`
+- `tests/e2e/app.spec.js`
 - `index.html`
 - `ohjeet.html`
+- `index.js`
 
 ## Remaining tasks
 
-- Add automated tests for the landing flow, plain-text export, and modal keyboard behavior if those areas need stronger regression coverage.
 - Decide whether custom player names should replace the current automatic animal naming.
-- Decide whether final scenario export should also support a downloadable text or PDF artifact in addition to clipboard copying.
-- Consider a more mobile-friendly game layout if phone participation becomes a stronger requirement.
-- Decide whether a full ESLint/Prettier setup is worth adding, or whether the lighter syntax-and-behavior checks are enough for this project.
+- Decide whether the plain-text export should also support a downloadable text or PDF artifact in addition to clipboard copying.
+- Decide whether the optional SQLite mode should be exercised in CI or remain a manual deployment feature only.
+- Decide whether the development debug panel should stay purely local or also become a protected admin route in hosted workshop environments.
+- Decide whether custom player names should replace the current automatic animal naming.
 
 ## Known issues or risks
 
-- Room state still lives only in server memory. Restarting the Node process clears active rooms.
-- Reconnect recovery depends on the same browser keeping its local reconnect token. A different browser or a cleared storage state joins as a new participant.
-- Host control is intentionally temporary-transfer based now. That keeps the room moving, but it also means host control can switch twice: once when the host drops, and again when the original host returns within the grace window.
-- The current `lint` script is a lightweight project validation alias, not a full ESLint setup.
-- The older root `index.html` and `ohjeet.html` pages still remain in the repository alongside the main `public/` app.
+- The default deployment is still memory-only. SQLite persistence exists, but it is disabled by default and has not yet been exercised in automated CI.
+- SQLite mode depends on a Node.js runtime that supports `node:sqlite`.
+- Reconnect recovery still depends on the same browser keeping its local reconnect token. A different browser or a cleared storage state joins as a new participant.
+- Host control is intentionally temporary-transfer based. That keeps a room moving, but control can still switch twice: once when the host drops, and again when the original host returns within the grace window.
+- The older root `index.html` and `ohjeet.html` pages still remain alongside the main `public/` app, so there are still two UI generations in the repository.
 
 ## Manual tests to run next
 
-1. Open the landing screen, create a room, and verify the page transitions cleanly into the shared table view.
-2. Use the landing join form in a second browser with the copied room code and confirm both browsers share the same table state.
-3. As host, trigger reset and random deal and confirm the browser asks for confirmation before changing the shared table.
-4. Disconnect the host, verify the next player gains room controls, then reconnect the original host in the same browser and confirm host control returns.
-5. Fill the table with cards and use the copy-results action. Confirm the pasted text contains one labeled line per deck.
-6. Open and close each modal with mouse and keyboard, confirm Escape closes the modal, Tab stays inside it, and focus returns to the trigger that opened it.
-7. In production-like settings, set `SOCKET_ALLOWED_ORIGINS` and confirm only allowed origins can connect.
-8. Check `http://localhost:4000/health` and confirm it returns JSON with `status`, `rooms`, and `uptimeSeconds`.
+1. Start the app in development mode and confirm the footer version and debug panel appear together.
+2. Open a room on a phone-sized viewport and confirm the mobile observer panel updates when table cards change on a larger host screen.
+3. Enable `ROOM_STORAGE_MODE=sqlite`, restart the server, and confirm active room state survives a process restart in a writable environment.
+4. Deploy once with the provided Docker or platform example files and confirm `/health` remains reachable through the real reverse proxy.
+5. Open a modal from both the burger menu and a direct trigger and confirm focus always returns to a logical visible control after closing.

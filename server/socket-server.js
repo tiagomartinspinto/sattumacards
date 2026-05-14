@@ -18,6 +18,10 @@ function createGameSocketServer({ server, config, logger, roomService, validator
           }
         : undefined,
   });
+  const debugState = {
+    rateLimitHits: {},
+    totalConnections: 0,
+  };
 
   function rejectAction(socket, key) {
     socket.emit("actionRejected", { key });
@@ -72,6 +76,8 @@ function createGameSocketServer({ server, config, logger, roomService, validator
     }
 
     if (existingState.count >= rateLimit.limit) {
+      debugState.rateLimitHits[eventName] =
+        (debugState.rateLimitHits[eventName] || 0) + 1;
       return false;
     }
 
@@ -120,14 +126,19 @@ function createGameSocketServer({ server, config, logger, roomService, validator
     const playerSessionId = normalizeSessionId(
       socket.handshake.auth?.playerSessionId || socket.handshake.query.playerSessionId
     );
-    const existingRoom = requestedRoomCode ? roomService.getRoom(requestedRoomCode) : null;
+    const existingRoom = requestedRoomCode
+      ? roomService.getRoom(requestedRoomCode)
+      : null;
 
     if (requestedRoomCode && !existingRoom) {
       next(createSocketError("roomExpired"));
       return;
     }
 
-    if (existingRoom && Object.keys(existingRoom.players).length >= config.MAX_PLAYERS_PER_ROOM) {
+    if (
+      existingRoom &&
+      Object.keys(existingRoom.players).length >= config.MAX_PLAYERS_PER_ROOM
+    ) {
       next(createSocketError("roomFull"));
       return;
     }
@@ -149,6 +160,7 @@ function createGameSocketServer({ server, config, logger, roomService, validator
   cleanupHandle.unref();
 
   io.on("connection", (socket) => {
+    debugState.totalConnections += 1;
     const joinResult = roomService.joinRoom({
       requestedRoomCode: socket.data.requestedRoomCode,
       socketId: socket.id,
@@ -296,7 +308,10 @@ function createGameSocketServer({ server, config, logger, roomService, validator
       const disconnectResult = roomService.disconnectPlayer(room, socket.id);
 
       emitBoardReset(room);
-      io.to(room.code).emit("playerDisconnected", userName);
+      io.to(room.code).emit("playerDisconnected", {
+        userId: socket.id,
+        userName,
+      });
 
       logger.info("Player disconnected", {
         roomCode: disconnectResult.roomCode,
@@ -306,7 +321,16 @@ function createGameSocketServer({ server, config, logger, roomService, validator
     });
   });
 
-  return io;
+  return {
+    getDebugSnapshot() {
+      return {
+        currentSockets: io.engine.clientsCount,
+        rateLimitHits: { ...debugState.rateLimitHits },
+        totalConnections: debugState.totalConnections,
+      };
+    },
+    io,
+  };
 }
 
 module.exports = {

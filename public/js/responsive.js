@@ -31,8 +31,7 @@ export function initResponsive(i18n) {
       warningDismissed = false;
     }
 
-    resolutionWarning.style.display =
-      shouldWarn && !warningDismissed ? "block" : "none";
+    resolutionWarning.style.display = shouldWarn && !warningDismissed ? "block" : "none";
   }
 
   if (dismissButton) {

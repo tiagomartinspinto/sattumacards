@@ -18,9 +18,7 @@ function getInitialLanguage() {
   }
 
   const savedLanguage = localStorage.getItem("sattumaLanguage");
-  return SUPPORTED_LANGUAGES.includes(savedLanguage)
-    ? savedLanguage
-    : DEFAULT_LANGUAGE;
+  return SUPPORTED_LANGUAGES.includes(savedLanguage) ? savedLanguage : DEFAULT_LANGUAGE;
 }
 
 async function fetchDictionary(language) {
@@ -55,11 +53,7 @@ export function createI18n() {
   }
 
   function t(key) {
-    return (
-      dictionaries[language]?.[key] ||
-      dictionaries[DEFAULT_LANGUAGE]?.[key] ||
-      key
-    );
+    return dictionaries[language]?.[key] || dictionaries[DEFAULT_LANGUAGE]?.[key] || key;
   }
 
   function applyTranslations() {
@@ -70,17 +64,17 @@ export function createI18n() {
       element.textContent = t(element.dataset.i18n);
     });
 
-      targets.html.forEach((element) => {
-        element.innerHTML = t(element.dataset.i18nHtml);
-      });
+    targets.html.forEach((element) => {
+      element.innerHTML = t(element.dataset.i18nHtml);
+    });
 
-      targets.placeholder.forEach((element) => {
-        element.setAttribute("placeholder", t(element.dataset.i18nPlaceholder));
-      });
+    targets.placeholder.forEach((element) => {
+      element.setAttribute("placeholder", t(element.dataset.i18nPlaceholder));
+    });
 
-      targets.title.forEach((element) => {
-        element.setAttribute("title", t(element.dataset.i18nTitle));
-      });
+    targets.title.forEach((element) => {
+      element.setAttribute("title", t(element.dataset.i18nTitle));
+    });
 
     targets.ariaLabel.forEach((element) => {
       element.setAttribute("aria-label", t(element.dataset.i18nAriaLabel));

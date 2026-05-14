@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fi">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" href="./imgs/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="./imgs/favicon.ico" type="image/x-icon" />
     <title>Sattuma</title>
     <link rel="stylesheet" href="gameA.css" />
   </head>
@@ -24,60 +24,116 @@
     </div>
 
     <div class="burger-menu">
-        <div
-          class="menu-icon"
-          role="button"
-          tabindex="0"
-          aria-label="Avaa valikko"
-          data-i18n-aria-label="menuOpen"
-          aria-controls="menuContent"
-          aria-expanded="false"
+      <div
+        class="menu-icon"
+        role="button"
+        tabindex="0"
+        aria-label="Avaa valikko"
+        data-i18n-aria-label="menuOpen"
+        aria-controls="menuContent"
+        aria-expanded="false"
+      >
+        <div class="line"></div>
+        <div class="line"></div>
+        <div class="line"></div>
+      </div>
+      <div class="menu-content" id="menuContent">
+        <ul>
+          <li
+            data-modal-target="instructionsModal"
+            role="button"
+            tabindex="0"
+            data-i18n="menuInstructions"
+          >
+            Pelin ohjeet
+          </li>
+          <li
+            data-modal-target="historyModal"
+            role="button"
+            tabindex="0"
+            data-i18n="menuMoreInfo"
+          >
+            Lisätietoa
+          </li>
+          <li
+            data-modal-target="contactsModal"
+            role="button"
+            tabindex="0"
+            data-i18n="menuContacts"
+          >
+            Yhteystiedot
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div id="instructionsModal" class="modal" aria-hidden="true">
+      <div
+        class="modal-content"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="instructionsModalTitle"
+        tabindex="-1"
+      >
+        <button
+          class="close"
+          type="button"
+          data-modal-close="instructionsModal"
+          aria-label="Sulje ikkuna"
         >
-          <div class="line"></div>
-          <div class="line"></div>
-          <div class="line"></div>
-        </div>
-        <div class="menu-content" id="menuContent">
-          <ul>
-            <li data-modal-target="instructionsModal" role="button" tabindex="0" data-i18n="menuInstructions">Pelin ohjeet</li>
-            <li data-modal-target="historyModal" role="button" tabindex="0" data-i18n="menuMoreInfo">Lisätietoa</li>
-            <li data-modal-target="contactsModal" role="button" tabindex="0" data-i18n="menuContacts">Yhteystiedot</li>
-          </ul>
+          &times;
+        </button>
+        <h2 id="instructionsModalTitle" data-i18n="modalInstructionsTitle">
+          //Pelin ohjeet
+        </h2>
+        <div id="instructionsContent" class="modal-copy">
+          <!-- Instructions content will be loaded here -->
         </div>
       </div>
-      <div id="instructionsModal" class="modal" aria-hidden="true">
-        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="instructionsModalTitle" tabindex="-1">
-          <button class="close" type="button" data-modal-close="instructionsModal" aria-label="Sulje ikkuna">
-            &times;
-          </button>
-          <h2 id="instructionsModalTitle" data-i18n="modalInstructionsTitle">//Pelin ohjeet</h2>
-          <div id="instructionsContent" class="modal-copy">
-            <!-- Instructions content will be loaded here -->
-          </div>
+    </div>
+    <div id="historyModal" class="modal" aria-hidden="true">
+      <div
+        class="modal-content"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="historyModalTitle"
+        tabindex="-1"
+      >
+        <button
+          class="close"
+          type="button"
+          data-modal-close="historyModal"
+          aria-label="Sulje ikkuna"
+        >
+          &times;
+        </button>
+        <h2 id="historyModalTitle" data-i18n="modalMoreInfoTitle">//Lisätietoa</h2>
+        <div id="historyContent" class="modal-copy">
+          <!-- History content will be loaded here -->
         </div>
       </div>
-      <div id="historyModal" class="modal" aria-hidden="true">
-        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="historyModalTitle" tabindex="-1">
-          <button class="close" type="button" data-modal-close="historyModal" aria-label="Sulje ikkuna">
-            &times;
-          </button>
-          <h2 id="historyModalTitle" data-i18n="modalMoreInfoTitle">//Lisätietoa</h2>
-          <div id="historyContent" class="modal-copy">
-            <!-- History content will be loaded here -->
-          </div>
+    </div>
+    <div id="contactsModal" class="modal" aria-hidden="true">
+      <div
+        class="modal-content"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="contactsModalTitle"
+        tabindex="-1"
+      >
+        <button
+          class="close"
+          type="button"
+          data-modal-close="contactsModal"
+          aria-label="Sulje ikkuna"
+        >
+          &times;
+        </button>
+        <h2 id="contactsModalTitle" data-i18n="modalContactsTitle">//Yhteystiedot</h2>
+        <div id="contactsContent" class="modal-copy">
+          <!-- Contacts content will be loaded here -->
         </div>
       </div>
-      <div id="contactsModal" class="modal" aria-hidden="true">
-        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="contactsModalTitle" tabindex="-1">
-          <button class="close" type="button" data-modal-close="contactsModal" aria-label="Sulje ikkuna">
-            &times;
-          </button>
-          <h2 id="contactsModalTitle" data-i18n="modalContactsTitle">//Yhteystiedot</h2>
-          <div id="contactsContent" class="modal-copy">
-            <!-- Contacts content will be loaded here -->
-          </div>
-        </div>
-      </div>
+    </div>
 
     <section id="landingScreen" class="landing-screen" aria-labelledby="landingTitle">
       <img src="./imgs/sattuma-text-img.webp" alt="Sattuma" class="landing-logo" />
@@ -128,21 +184,63 @@
         Room state is temporary and stays only in server memory.
       </p>
     </section>
-      
-    <main class="game-board-shell" id="gameBoardShell" aria-label="Sattuma-pelipöytä" data-i18n-aria-label="boardLabel" hidden>
+
+    <main
+      class="game-board-shell"
+      id="gameBoardShell"
+      aria-label="Sattuma-pelipöytä"
+      data-i18n-aria-label="boardLabel"
+      hidden
+    >
       <div class="play-area">
         <div class="title">
-          <img src="./imgs/sattuma-text-img.webp" alt="Sattuma" class="title-image"/>
+          <img src="./imgs/sattuma-text-img.webp" alt="Sattuma" class="title-image" />
         </div>
 
         <!-- Deck Container -->
         <div class="deck-container">
-          <div class="deck" id="deck-situation" data-deck-id="situation" title="Tilanne" data-i18n-title="deckSituation"></div>
-          <div class="deck" id="deck-space" data-deck-id="space" title="Tila" data-i18n-title="deckSpace"></div>
-          <div class="deck" id="deck-methods" data-deck-id="methods" title="Keinot ja oivallukset" data-i18n-title="deckMethods"></div>
-          <div class="deck" id="deck-resources" data-deck-id="resources" title="Resurssit" data-i18n-title="deckResources"></div>
-          <div class="deck" id="deck-teaching-format" data-deck-id="teaching-format" title="Opetusmuoto" data-i18n-title="deckTeachingFormat"></div>
-          <div class="deck" id="deck-chance" data-deck-id="chance" title="Sattuma" data-i18n-title="deckChance"></div>
+          <div
+            class="deck"
+            id="deck-situation"
+            data-deck-id="situation"
+            title="Tilanne"
+            data-i18n-title="deckSituation"
+          ></div>
+          <div
+            class="deck"
+            id="deck-space"
+            data-deck-id="space"
+            title="Tila"
+            data-i18n-title="deckSpace"
+          ></div>
+          <div
+            class="deck"
+            id="deck-methods"
+            data-deck-id="methods"
+            title="Keinot ja oivallukset"
+            data-i18n-title="deckMethods"
+          ></div>
+          <div
+            class="deck"
+            id="deck-resources"
+            data-deck-id="resources"
+            title="Resurssit"
+            data-i18n-title="deckResources"
+          ></div>
+          <div
+            class="deck"
+            id="deck-teaching-format"
+            data-deck-id="teaching-format"
+            title="Opetusmuoto"
+            data-i18n-title="deckTeachingFormat"
+          ></div>
+          <div
+            class="deck"
+            id="deck-chance"
+            data-deck-id="chance"
+            title="Sattuma"
+            data-i18n-title="deckChance"
+          ></div>
         </div>
 
         <div class="dropzone-container">
@@ -150,7 +248,11 @@
           <div class="dropzone" id="dropzone-space" data-deck-id="space"></div>
           <div class="dropzone" id="dropzone-methods" data-deck-id="methods"></div>
           <div class="dropzone" id="dropzone-resources" data-deck-id="resources"></div>
-          <div class="dropzone" id="dropzone-teaching-format" data-deck-id="teaching-format"></div>
+          <div
+            class="dropzone"
+            id="dropzone-teaching-format"
+            data-deck-id="teaching-format"
+          ></div>
           <div class="dropzone" id="dropzone-chance" data-deck-id="chance"></div>
         </div>
 
@@ -164,7 +266,6 @@
         </div>
 
         <div class="button-container">
-
           <!-- Random situation button with the Sattuma logo inside -->
           <button
             class="button-arounder quick-deal-logo-button"
@@ -284,42 +385,86 @@
       </div>
     </main>
 
-    <section class="mobile-info" aria-labelledby="mobileInfoTitle">
+    <section class="mobile-info" id="mobileInfoScreen" aria-labelledby="mobileInfoTitle">
       <img src="./imgs/sattuma-text-img.webp" alt="Sattuma" class="mobile-info-logo" />
       <p class="mobile-info-kicker" data-i18n="mobileKicker">Pelipöytä tarvitsee tilaa</p>
-      <h1 id="mobileInfoTitle" data-i18n="mobileTitle">Avaa Sattuma isommalla vaakasuuntaisella näytöllä</h1>
+      <h1 id="mobileInfoTitle" data-i18n="mobileTitle">
+        Avaa Sattuma isommalla vaakasuuntaisella näytöllä
+      </h1>
       <p data-i18n="mobileIntro1">
-        Sattuma on korttipeli, jossa kuusi pakkaa, korttien nostopaikat ja
-        yhteinen pelihuone tarvitsevat ruudulle kunnolla tilaa.
+        Sattuma on korttipeli, jossa kuusi pakkaa, korttien nostopaikat ja yhteinen
+        pelihuone tarvitsevat ruudulle kunnolla tilaa.
       </p>
       <p data-i18n="mobileIntro2">
-        Peli toimii parhaiten tietokoneella tai tabletilla vaakasuunnassa.
-        Suositus on vähintään 900 x 620 pikseliä.
+        Peli toimii parhaiten tietokoneella tai tabletilla vaakasuunnassa. Suositus on
+        vähintään 900 x 620 pikseliä.
       </p>
+
+      <section
+        class="mobile-observer-panel"
+        id="mobileObserverPanel"
+        hidden
+        aria-labelledby="mobileObserverTitle"
+      >
+        <p class="mobile-observer-kicker" data-i18n="mobileObserverKicker">
+          Seuraajan tila
+        </p>
+        <h2 id="mobileObserverTitle" data-i18n="mobileObserverTitle">
+          Seuraa yhteistä huonetta
+        </h2>
+        <dl class="mobile-observer-meta">
+          <div>
+            <dt data-i18n="roomCodeLabel">Koodi:</dt>
+            <dd id="mobileObserverRoomCode">—</dd>
+          </div>
+          <div>
+            <dt data-i18n="observerPhaseLabel">Vaihe</dt>
+            <dd id="mobileObserverPhase">—</dd>
+          </div>
+          <div>
+            <dt data-i18n="observerTurnLabel">Vuoro</dt>
+            <dd id="mobileObserverTurn">—</dd>
+          </div>
+          <div>
+            <dt data-i18n="timerLabel">Ajastin</dt>
+            <dd id="mobileObserverTimer">—</dd>
+          </div>
+        </dl>
+        <div class="mobile-observer-section">
+          <h3 data-i18n="playersOnline">Paikalla</h3>
+          <ul id="mobileObserverPlayers" class="mobile-observer-list"></ul>
+        </div>
+        <div class="mobile-observer-section">
+          <h3 data-i18n="mobileObserverCardsTitle">Kortit pöydällä</h3>
+          <p id="mobileObserverEmpty" data-i18n="mobileObserverEmpty">
+            Kortteja ei ole vielä käännetty pöydälle.
+          </p>
+          <div id="mobileObserverCards" class="mobile-observer-cards"></div>
+        </div>
+      </section>
 
       <div class="mobile-info-section">
         <h2 data-i18n="mobileGameIdeaTitle">Pelin idea</h2>
         <p data-i18n="mobileGameIdeaText">
-          Nostakaa korteista tilanteita, tiloja, opetusmuotoja, resursseja ja
-          sattumia. Kortit auttavat rakentamaan keskustelua opetuksen,
-          taiteen ja digitaalisten välineiden ympärille.
+          Nostakaa korteista tilanteita, tiloja, opetusmuotoja, resursseja ja sattumia.
+          Kortit auttavat rakentamaan keskustelua opetuksen, taiteen ja digitaalisten
+          välineiden ympärille.
         </p>
       </div>
 
       <div class="mobile-info-section">
         <h2 data-i18n="mobileTogetherTitle">Yhdessä pelaaminen</h2>
         <p data-i18n="mobileTogetherText">
-          Pelihuoneen koodilla samaa kierrosta voi seurata useampi osallistuja.
-          Jokainen voi avata oman näkymänsä ja pelata samassa tilassa.
+          Pelihuoneen koodilla samaa kierrosta voi seurata useampi osallistuja. Jokainen
+          voi avata oman näkymänsä ja pelata samassa tilassa.
         </p>
       </div>
 
       <div class="mobile-info-section">
         <h2 data-i18n="mobileMoreInfoTitle">Lisätietoa</h2>
         <p data-i18n="mobileMoreInfoText1">
-          Sattuma on kehitetty osana Opetus- ja kulttuuriministeriön
-          rahoittamaa Taiteet ja digi -hanketta Taideyliopiston ja
-          Aalto-yliopiston yhteistyönä.
+          Sattuma on kehitetty osana Opetus- ja kulttuuriministeriön rahoittamaa Taiteet
+          ja digi -hanketta Taideyliopiston ja Aalto-yliopiston yhteistyönä.
         </p>
         <p data-i18n-html="mobileMoreInfoText2">
           Peliä ovat olleet suunnittelemassa
@@ -339,22 +484,41 @@
 
     <!-- Resolution Warning -->
     <div id="resolution-warning" style="display: none">
-        <strong id="resolution-warning-title" data-i18n="resolutionTitle">Pelitila tarvitsee enemmän tilaa</strong>
-        <p id="resolution-warning-message">
-          Käännä laite vaakasuuntaan tai suurenna selainikkunaa.
-        </p>
-        <button
-          class="resolution-warning-button"
-          id="dismissResolutionWarningBtn"
-          title="Sulje ilmoitus"
-          aria-label="Sulje ilmoitus"
-          data-i18n-title="closeNotice"
-          data-i18n-aria-label="closeNotice"
-          data-i18n="closeNoticeShort"
-        >
-          Sulje
-        </button>
+      <strong id="resolution-warning-title" data-i18n="resolutionTitle"
+        >Pelitila tarvitsee enemmän tilaa</strong
+      >
+      <p id="resolution-warning-message">
+        Käännä laite vaakasuuntaan tai suurenna selainikkunaa.
+      </p>
+      <button
+        class="resolution-warning-button"
+        id="dismissResolutionWarningBtn"
+        title="Sulje ilmoitus"
+        aria-label="Sulje ilmoitus"
+        data-i18n-title="closeNotice"
+        data-i18n-aria-label="closeNotice"
+        data-i18n="closeNoticeShort"
+      >
+        Sulje
+      </button>
     </div>
+
+    <footer class="app-footer" aria-label="Application footer">
+      <span class="app-version" id="appVersionText">v1.1.0</span>
+    </footer>
+
+    <details class="debug-panel" id="debugPanel" hidden>
+      <summary>Debug</summary>
+      <p id="debugPanelSummary" class="debug-panel-summary">Loading debug state…</p>
+      <div class="debug-panel-section">
+        <strong>Rooms</strong>
+        <ul id="debugPanelRooms" class="debug-panel-list"></ul>
+      </div>
+      <div class="debug-panel-section">
+        <strong>Rate limits</strong>
+        <ul id="debugPanelRateLimits" class="debug-panel-list"></ul>
+      </div>
+    </details>
 
     <!-- Scripts -->
     <script src="/socket.io/socket.io.js"></script>

@@ -155,9 +155,12 @@ export function createCards({ socket, i18n, showNotice }) {
     window.requestAnimationFrame(() => {
       window.requestAnimationFrame(() => {
         flippedCards.forEach(([cardId], index) => {
-          window.setTimeout(() => {
-            document.getElementById(cardId)?.classList.add("flip");
-          }, QUICK_REVEAL_START_MS + index * QUICK_REVEAL_STAGGER_MS);
+          window.setTimeout(
+            () => {
+              document.getElementById(cardId)?.classList.add("flip");
+            },
+            QUICK_REVEAL_START_MS + index * QUICK_REVEAL_STAGGER_MS
+          );
         });
       });
     });
@@ -220,7 +223,15 @@ export function createCards({ socket, i18n, showNotice }) {
   }
 
   function getScenarioText() {
-    const lines = DECKS.map((deck) => {
+    const lines = getScenarioEntries()
+      .map((entry) => `${entry.label}: ${entry.text}`)
+      .filter(Boolean);
+
+    return lines.join("\n");
+  }
+
+  function getScenarioEntries() {
+    return DECKS.map((deck) => {
       const dropzone = document.getElementById(`dropzone-${deck.id}`);
       const card = dropzone?.querySelector(".card");
 
@@ -234,10 +245,13 @@ export function createCards({ socket, i18n, showNotice }) {
         return null;
       }
 
-      return `${i18n.t(deck.labelKey)}: ${text}`;
+      return {
+        cardId: card.id,
+        deckId: deck.id,
+        label: i18n.t(deck.labelKey),
+        text,
+      };
     }).filter(Boolean);
-
-    return lines.join("\n");
   }
 
   function bindCardClickHandler() {
@@ -272,6 +286,7 @@ export function createCards({ socket, i18n, showNotice }) {
     refreshTexts,
     removeCard,
     resetDeckElements,
+    getScenarioEntries,
     getScenarioText,
     updateCardText,
   };

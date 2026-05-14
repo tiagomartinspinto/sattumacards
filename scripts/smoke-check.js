@@ -32,7 +32,7 @@ requiredFiles.forEach((filePath) => {
 
   try {
     JSON.parse(fs.readFileSync(filePath, "utf8"));
-  } catch (error) {
+  } catch (_error) {
     console.error(`Invalid i18n JSON: ${filePath}`);
     hasError = true;
   }

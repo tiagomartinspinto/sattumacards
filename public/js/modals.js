@@ -44,7 +44,10 @@ export function initModals() {
 
     if (modal) {
       activeModalId = modalId;
-      lastFocusedElement = triggerElement || null;
+      lastFocusedElement =
+        triggerElement?.closest?.("#menuContent") && menuIcon
+          ? menuIcon
+          : triggerElement || null;
       modal.setAttribute("aria-hidden", "false");
       modal.style.display = "block";
       closeMenu();
@@ -109,7 +112,10 @@ export function initModals() {
       return;
     }
 
-    if ((event.key === "Enter" || event.key === " ") && event.target.closest?.("[data-modal-target]")) {
+    if (
+      (event.key === "Enter" || event.key === " ") &&
+      event.target.closest?.("[data-modal-target]")
+    ) {
       const openTrigger = event.target.closest("[data-modal-target]");
       event.preventDefault();
       openModal(openTrigger.dataset.modalTarget, openTrigger);

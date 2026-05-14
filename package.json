@@ -1,16 +1,20 @@
 {
   "name": "sattumacards",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Collaborative bilingual card game for exploring teaching situations in shared multiplayer rooms",
   "main": "server.js",
   "scripts": {
-    "check": "npm run check:server && node scripts/check-client-modules.js && npm run check:decks && npm run smoke && npm run test:multiplayer",
+    "check": "npm run lint && npm run format:check && npm run check:server && node scripts/check-client-modules.js && npm run check:decks && npm run smoke && npm run test:multiplayer && npm run test:e2e",
     "check:decks": "node scripts/check-decks.js",
     "check:server": "node scripts/check-server-modules.js",
     "dev": "node --watch server.js",
-    "lint": "npm run check",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check",
+    "lint": "eslint . --max-warnings=0",
+    "lint:fix": "eslint . --fix",
     "smoke": "node scripts/smoke-check.js",
-    "test": "npm run test:multiplayer",
+    "test": "npm run test:multiplayer && npm run test:e2e",
+    "test:e2e": "playwright test",
     "test:multiplayer": "node --test tests/*.test.js",
     "start": "node server.js"
   },
@@ -24,6 +28,12 @@
     "socket.io": "^4.7.4"
   },
   "devDependencies": {
+    "@eslint/js": "^9.27.0",
+    "@playwright/test": "^1.54.0",
+    "eslint": "^9.27.0",
+    "eslint-config-prettier": "^10.1.5",
+    "globals": "^16.0.0",
+    "prettier": "^3.5.3",
     "socket.io-client": "^4.7.4"
   },
   "repository": {

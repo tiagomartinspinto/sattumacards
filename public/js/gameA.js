@@ -1,3 +1,4 @@
+import { initAppFooter, initDebugPanel, loadAppConfig } from "./app-shell.js";
 import { createCards } from "./cards.js";
 import { initDragAndDrop } from "./drag-drop.js";
 import { createI18n } from "./i18n.js";
@@ -121,6 +122,10 @@ function initLandingActions(i18n) {
 }
 
 async function initGame() {
+  const appConfig = await loadAppConfig();
+  initAppFooter(appConfig);
+  initDebugPanel(appConfig);
+
   const i18n = createI18n();
   await i18n.init();
 

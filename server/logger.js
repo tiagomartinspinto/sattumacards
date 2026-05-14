@@ -2,11 +2,14 @@ const LOG_LEVELS = {
   error: 0,
   warn: 1,
   info: 2,
+  debug: 3,
 };
 
 function createLogger(logLevel = "info") {
   function log(level, message, meta) {
-    if ((LOG_LEVELS[level] ?? LOG_LEVELS.info) > (LOG_LEVELS[logLevel] ?? LOG_LEVELS.info)) {
+    if (
+      (LOG_LEVELS[level] ?? LOG_LEVELS.info) > (LOG_LEVELS[logLevel] ?? LOG_LEVELS.info)
+    ) {
       return;
     }
 
@@ -23,6 +26,9 @@ function createLogger(logLevel = "info") {
   }
 
   return {
+    debug(message, meta) {
+      log("debug", message, meta);
+    },
     error(message, meta) {
       log("error", message, meta);
     },

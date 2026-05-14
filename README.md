@@ -1,10 +1,12 @@
 # Sattuma
 
-Sattuma is a collaborative bilingual card game for imagining, discussing, and reshaping teaching situations. The digital version lets several participants join the same room, share one synchronized game table, and build scenarios together in local, remote, or hybrid settings.
+Sattuma is a collaborative bilingual card game for imagining, discussing, and reshaping teaching situations. The digital version lets several participants join the same room, share one synchronized table, and build scenarios together in local, remote, or hybrid settings.
+
+The current app version is surfaced in the UI footer and tracked in `CHANGELOG.md`. Release tags should follow the same semantic version number format, for example `v1.1.0`.
 
 ## What the app does
 
-Players use six card decks to build a shared teaching scenario:
+Players use six decks to build a shared teaching scenario:
 
 - situation
 - space
@@ -13,13 +15,13 @@ Players use six card decks to build a shared teaching scenario:
 - teaching format
 - chance
 
-The app supports two main ways to begin:
+The game flow supports:
 
-1. Create a room or join one from the landing screen.
-2. Draw cards manually onto the table.
-3. Use the random deal button to create a six-card situation automatically.
-
-After the table is filled, the group discusses the scenario and can continue with replacement rounds in which one card is swapped for a new card from the same deck.
+1. a landing screen for creating or joining a room
+2. manual card dealing onto the shared table
+3. a host-only random deal for a full six-card scenario
+4. discussion and replacement rounds after the table is filled
+5. copying the final table as plain text for workshop notes
 
 ## Running locally
 
@@ -29,7 +31,13 @@ Install dependencies:
 npm install
 ```
 
-Start the server:
+Install the Playwright browser once if you want to run browser tests locally:
+
+```bash
+npx playwright install chromium
+```
+
+Start the app:
 
 ```bash
 npm start
@@ -41,7 +49,7 @@ For local development with automatic restarts:
 npm run dev
 ```
 
-Then open:
+Open:
 
 ```text
 http://localhost:4000
@@ -51,39 +59,80 @@ http://localhost:4000
 
 - Each browser session joins one room.
 - Players in the same room share the same synchronized table state.
-- The first player to join a room becomes the host.
-- Only the host can start over, deal a random situation, change the timer, or start a replacement round.
-- Before reset and random deal actions, the host is asked for confirmation because those actions replace the shared state for everyone in the room.
-- Room state is temporary and stored in server memory.
-- An opaque browser session token helps the same browser reconnect to its previous player slot after a refresh or short connection drop.
-- If the host disconnects, host control temporarily moves to the next connected player so the room can keep going. If the original host reconnects within the reconnect grace window, host control returns to that browser.
-- Empty rooms are automatically cleaned up after inactivity.
+- The first player to join becomes the host.
+- Only the host can reset the room, deal a random situation, change the timer, or start a replacement round.
+- Reset and random-deal actions require confirmation before they replace the shared table.
+- An opaque browser session token helps the same browser reconnect to its earlier player slot after a refresh or short disconnect.
+- If the host disconnects, host control temporarily moves to the next connected player so the room can continue.
+- If the original host reconnects within the reconnect grace window from the same browser session, host control returns to that browser.
+- Empty rooms are cleaned up after inactivity.
 
-## Sharing and export
+## Mobile observer mode
 
-- The landing screen lets facilitators create a room and participants join one with a short room code.
-- The game room includes a copy-room-link action for inviting others.
-- The current table can be copied as plain text so the final scenario can be pasted into workshop notes or external documents.
+On smaller screens, Sattuma now offers a read-only observer view instead of a full gameplay layout. Participants can:
+
+- see the room code
+- follow the current phase and active turn
+- read the current table cards
+- follow the player list and discussion state
+
+The observer view is intentionally not a second control surface.
+
+## Storage modes
+
+By default, room state is kept only in server memory.
+
+An optional SQLite-backed room store is available behind environment variables and is disabled by default. This keeps the default setup simple and privacy-friendly while leaving room for more persistent workshop deployments later.
+
+Relevant environment variables are listed in `.env.example`:
+
+- `ROOM_STORAGE_MODE=memory`
+- `SQLITE_DB_PATH=.data/sattuma.sqlite`
+
+SQLite mode requires a Node.js runtime that supports `node:sqlite`.
 
 ## Privacy and data note
 
-Room state is temporary and kept in server memory. No user accounts or persistent personal data are stored.
+Room state is temporary and kept in server memory by default. No user accounts or persistent personal data are stored.
 
-The browser stores a short opaque reconnect token locally so the same participant can resume a room more reliably after a reload or network interruption.
+The browser stores a short opaque reconnect token locally so the same participant can resume a room more reliably after a reload or brief network interruption.
 
-## Deployment
+## Development tooling
 
-This project requires a Node.js server. It is not a GitHub Pages-only app because multiplayer depends on an Express and Socket.IO backend.
+This repository now includes real linting, formatting, and browser regression coverage.
 
-For deployment, make sure the hosting environment supports:
+Useful commands:
 
-- persistent Node.js processes
-- WebSocket connections
-- environment variables for room limits, room expiry, and origin restrictions
+```bash
+npm run lint
+npm run lint:fix
+npm run format
+npm run format:check
+npm run test
+npm run check
+```
 
-The production build is self-contained. The Socket.IO client is served locally by the Node server, and the main game view does not rely on third-party CDNs or hosted web fonts.
+`npm run check` includes:
 
-Recommended environment variables are documented in `.env.example`.
+- ESLint
+- Prettier check
+- server syntax checks
+- client module checks
+- deck parity checks
+- smoke validation
+- multiplayer Node tests
+- Playwright browser E2E tests
+
+## Development-only debug panel
+
+In non-production mode, the app exposes a lightweight debug panel and debug endpoint for:
+
+- active room count
+- current players
+- reconnect reservations
+- Socket.IO rate-limit hits
+
+This is controlled by `ENABLE_DEBUG_PANEL` and is intended for development only.
 
 ## Health check
 
@@ -93,31 +142,42 @@ The server exposes:
 /health
 ```
 
-It returns a simple JSON status payload that can be used by uptime checks or deployment monitors.
+It returns a small JSON payload with status, version, storage mode, room count, and uptime.
 
-## Checks
+## Deployment
 
-Run the built-in project checks with:
+This project requires a Node.js server. It is not a GitHub Pages-only app because multiplayer depends on an Express and Socket.IO backend.
 
-```bash
-npm run check
-```
+The production build is self-contained:
 
-These checks validate server syntax, client module syntax, deck parity, a smoke-test file set, and automated multiplayer tests for host permissions, reconnects, invalid payloads, disconnect handling, and rate limiting.
+- the Socket.IO client is served locally by the server
+- the main app does not depend on third-party script CDNs
+- origin restrictions and HTTP hardening are configured on the server
+
+Deployment examples are included for:
+
+- Docker via `Dockerfile`
+- Render via `render.yaml`
+- Fly.io via `fly.toml`
+- Railway via `deployment/README.md`
+- self-hosted VPS via `deployment/sattuma.service`
+
+See `deployment/README.md` for notes and environment variable guidance.
 
 ## Project structure
 
 ```text
 server.js                  Runtime entrypoint
-server/                    Config, HTTP app, socket server, validators, room service
-public/index.html          Landing screen and main game interface
+server/                    Config, HTTP app, socket server, validators, room and storage services
+public/index.html          Landing screen, game board, observer view, and debug shell
 public/gameA.css           Main styling
 public/js/                 Client-side modules
 public/i18n/               Interface translations
 public/content/            Localized modal content
 public/cards/              Localized deck text files
+deployment/                Deployment examples and service templates
 scripts/                   Local validation scripts
-tests/                     Automated multiplayer tests
+tests/                     Multiplayer and browser-level tests
 ```
 
 ## License

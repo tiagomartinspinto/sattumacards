@@ -29,8 +29,7 @@ function toggleMenu() {
   if (!menuContent) {
     return;
   }
-  menuContent.style.display =
-    menuContent.style.display === "block" ? "none" : "block";
+  menuContent.style.display = menuContent.style.display === "block" ? "none" : "block";
 }
 
 function updateMenuIconAndContent(reset) {
@@ -50,9 +49,7 @@ function loadModalContent(modalId, contentId, filePath) {
       const contentElement = document.getElementById(contentId);
       contentElement.innerHTML = htmlText; // Use innerHTML to render HTML content
     })
-    .catch((error) =>
-      console.error("Error loading content for " + modalId + ":", error)
-    );
+    .catch((error) => console.error("Error loading content for " + modalId + ":", error));
 }
 
 // Function to handle window resize
@@ -78,9 +75,7 @@ function bindEventListeners() {
   );
 
   if (createGameBtn) {
-    createGameBtn.addEventListener("click", () =>
-      navigate("./public/index.html")
-    );
+    createGameBtn.addEventListener("click", () => navigate("./public/index.html"));
   }
 
   if (homePageBtn) {
@@ -128,8 +123,6 @@ function bindEventListeners() {
   }
 
   window.addEventListener("resize", handleWindowResize);
-  document.addEventListener("contextmenu", (e) => e.preventDefault());
-
   handleWindowResize();
 
   // Initialization
@@ -138,11 +131,7 @@ function bindEventListeners() {
     "instructionsContent",
     "./public/content/fi/instructions.html"
   );
-  loadModalContent(
-    "historyModal",
-    "historyContent",
-    "./public/content/fi/about.html"
-  );
+  loadModalContent("historyModal", "historyContent", "./public/content/fi/about.html");
   loadModalContent(
     "contactsModal",
     "contactsContent",

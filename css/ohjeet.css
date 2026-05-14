@@ -64,7 +64,8 @@ body.fade-out {
   --dur: 0.1s;
   --delay: 0.1s;
   --radius: 16px;
-  transition: border-radius var(--dur) var(--delay) ease-out,
+  transition:
+    border-radius var(--dur) var(--delay) ease-out,
     box-shadow calc(var(--dur) * 4) ease-out,
     transform calc(var(--dur) * 4) ease-out;
 }

@@ -27,7 +27,7 @@ function buildContentSecurityPolicy(config) {
   return directives;
 }
 
-function createHttpApp({ config, logger, getRoomCount }) {
+function createHttpApp({ config, getDebugState, getRoomCount, logger }) {
   const app = express();
 
   app.disable("x-powered-by");
@@ -53,17 +53,35 @@ function createHttpApp({ config, logger, getRoomCount }) {
 
   app.get("/health", (request, response) => {
     response.json({
+      storageMode: config.ROOM_STORAGE_MODE,
       status: "ok",
       rooms: getRoomCount(),
       uptimeSeconds: Math.round(process.uptime()),
+      version: config.APP_VERSION,
     });
   });
+
+  app.get("/app-config", (request, response) => {
+    response.setHeader("Cache-Control", "no-store");
+    response.json({
+      appVersion: config.APP_VERSION,
+      enableDebugPanel: Boolean(config.ENABLE_DEBUG_PANEL),
+      storageMode: config.ROOM_STORAGE_MODE,
+    });
+  });
+
+  if (config.ENABLE_DEBUG_PANEL) {
+    app.get("/debug/state", (request, response) => {
+      response.setHeader("Cache-Control", "no-store");
+      response.json(getDebugState());
+    });
+  }
 
   app.use((request, response, next) => {
     next(createHttpError(404, "Not found"));
   });
 
-  app.use((error, request, response, next) => {
+  app.use((error, request, response, _next) => {
     const statusCode = Number(error.statusCode || 500);
     const message = statusCode >= 500 ? "Internal server error" : error.message;
 

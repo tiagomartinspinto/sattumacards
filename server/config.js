@@ -1,4 +1,5 @@
 const path = require("path");
+const packageJson = require("../package.json");
 
 const DEFAULT_DECKS = [
   { id: "situation", file: "situation.txt" },
@@ -49,14 +50,40 @@ function cloneDecks(decks = DEFAULT_DECKS) {
   return decks.map((deck) => ({ ...deck }));
 }
 
+function toBoolean(value, defaultValue) {
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+
+    if (normalized === "true") {
+      return true;
+    }
+
+    if (normalized === "false") {
+      return false;
+    }
+  }
+
+  return defaultValue;
+}
+
 function createConfig(overrides = {}) {
   const NODE_ENV = overrides.NODE_ENV || process.env.NODE_ENV || "development";
   const DECKS = cloneDecks(overrides.DECKS);
   const SUPPORTED_LANGUAGES = [...(overrides.SUPPORTED_LANGUAGES || ["fi", "en"])];
+  const ROOT_DIR = path.join(__dirname, "..");
 
   const config = {
+    APP_VERSION: overrides.APP_VERSION || process.env.APP_VERSION || packageJson.version,
     NODE_ENV,
     IS_PRODUCTION: NODE_ENV === "production",
+    ENABLE_DEBUG_PANEL: toBoolean(
+      overrides.ENABLE_DEBUG_PANEL ?? process.env.ENABLE_DEBUG_PANEL,
+      NODE_ENV !== "production"
+    ),
     LOG_LEVEL: overrides.LOG_LEVEL || process.env.LOG_LEVEL || "info",
     PORT: Number(overrides.PORT || process.env.PORT || 4000),
     ROOM_TTL_MS: Number(
@@ -84,12 +111,19 @@ function createConfig(overrides = {}) {
     SOCKET_ALLOWED_ORIGINS: toOrigins(
       overrides.SOCKET_ALLOWED_ORIGINS ?? process.env.SOCKET_ALLOWED_ORIGINS
     ),
+    ROOM_STORAGE_MODE: String(
+      overrides.ROOM_STORAGE_MODE || process.env.ROOM_STORAGE_MODE || "memory"
+    ).toLowerCase(),
+    SQLITE_DB_PATH:
+      overrides.SQLITE_DB_PATH ||
+      process.env.SQLITE_DB_PATH ||
+      path.join(ROOT_DIR, ".data", "sattuma.sqlite"),
     DECKS,
     VALID_DECK_IDS: new Set(DECKS.map((deck) => deck.id)),
     ANIMAL_NAMES: overrides.ANIMAL_NAMES || DEFAULT_ANIMAL_NAMES,
-    ROOT_DIR: path.join(__dirname, ".."),
-    PUBLIC_DIR: path.join(__dirname, "..", "public"),
-    CARDS_DIR: path.join(__dirname, "..", "public", "cards"),
+    ROOT_DIR,
+    PUBLIC_DIR: path.join(ROOT_DIR, "public"),
+    CARDS_DIR: path.join(ROOT_DIR, "public", "cards"),
   };
 
   return config;

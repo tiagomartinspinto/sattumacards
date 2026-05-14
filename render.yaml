@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: sattumacards
+    env: docker
+    autoDeploy: true
+    healthCheckPath: /health
+    plan: free

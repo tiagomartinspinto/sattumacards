@@ -3,7 +3,10 @@ function normalizeRoomCode(roomCode) {
     return "";
   }
 
-  return roomCode.replace(/[^a-z0-9]/gi, "").slice(0, 12).toUpperCase();
+  return roomCode
+    .replace(/[^a-z0-9]/gi, "")
+    .slice(0, 12)
+    .toUpperCase();
 }
 
 function normalizeLanguage(language, supportedLanguages = ["fi", "en"]) {
@@ -105,7 +108,11 @@ function createValidators(config) {
 
     const { deckId, cardId, language } = data;
 
-    if (!isValidDeckId(deckId) || !isValidCardId(cardId) || deckId !== getCardDeckId(cardId)) {
+    if (
+      !isValidDeckId(deckId) ||
+      !isValidCardId(cardId) ||
+      deckId !== getCardDeckId(cardId)
+    ) {
       return null;
     }
 

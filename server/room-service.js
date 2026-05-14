@@ -1,7 +1,16 @@
 const crypto = require("crypto");
 
-function createRoomService({ config, deckStore, logger, validators }) {
-  const rooms = {};
+function createRoomService({ config, deckStore, logger, roomStore, validators }) {
+  const rooms = roomStore.loadRooms();
+
+  function persistRoom(room) {
+    roomStore.saveRoom(room);
+  }
+
+  function deleteRoom(roomCode) {
+    delete rooms[roomCode];
+    roomStore.deleteRoom(roomCode);
+  }
 
   function generateSecureRoomCode() {
     let roomCode = "";
@@ -57,11 +66,13 @@ function createRoomService({ config, deckStore, logger, validators }) {
     };
 
     logger.info("Created room", { roomCode });
+    persistRoom(rooms[roomCode]);
     return rooms[roomCode];
   }
 
   function touchRoom(room) {
     room.lastActivityAt = Date.now();
+    persistRoom(room);
   }
 
   function getHostPlayerName(room) {
@@ -145,7 +156,7 @@ function createRoomService({ config, deckStore, logger, validators }) {
       : null;
   }
 
-  function resetRoomCards(room) {
+  function resetRoomCards(room, persist = true) {
     room.cardIndices = {};
     room.usedCardIndices = {};
     room.localizedCardTexts = {};
@@ -153,11 +164,15 @@ function createRoomService({ config, deckStore, logger, validators }) {
     room.discardedCards = {};
     room.flippedCards = {};
     resetGameA(room);
-    touchRoom(room);
+    room.lastActivityAt = Date.now();
+
+    if (persist) {
+      persistRoom(room);
+    }
   }
 
   function dealRandomSituation(room) {
-    resetRoomCards(room);
+    resetRoomCards(room, false);
 
     config.DECKS.forEach((deck) => {
       const cardIndex = Math.floor(Math.random() * config.CARD_COUNT);
@@ -167,7 +182,8 @@ function createRoomService({ config, deckStore, logger, validators }) {
     });
 
     startDiscussionPhase(room);
-    touchRoom(room);
+    room.lastActivityAt = Date.now();
+    persistRoom(room);
   }
 
   function getNextPlayerName(room) {
@@ -193,7 +209,8 @@ function createRoomService({ config, deckStore, logger, validators }) {
       return -1;
     }
 
-    const selectedIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+    const selectedIndex =
+      availableIndices[Math.floor(Math.random() * availableIndices.length)];
     room.cardIndices[cardId] = selectedIndex;
     usedIndices.add(selectedIndex);
     room.usedCardIndices[deckId] = usedIndices;
@@ -297,7 +314,9 @@ function createRoomService({ config, deckStore, logger, validators }) {
       return "wrongDropzone";
     }
 
-    const hasCardInDropzone = Object.values(room.cardPositions).includes(data.newParentId);
+    const hasCardInDropzone = Object.values(room.cardPositions).includes(
+      data.newParentId
+    );
 
     if (room.gameA.phase === "deal" && hasCardInDropzone) {
       return "dropzoneOccupied";
@@ -318,7 +337,7 @@ function createRoomService({ config, deckStore, logger, validators }) {
     }
 
     const replacedCardId = Object.entries(room.cardPositions).find(
-      ([cardId, parentId]) => parentId === data.newParentId
+      ([, parentId]) => parentId === data.newParentId
     )?.[0];
 
     if (replacedCardId) {
@@ -327,10 +346,11 @@ function createRoomService({ config, deckStore, logger, validators }) {
       room.discardedCards[replacedCardId] = true;
     }
 
-    touchRoom(room);
+    room.lastActivityAt = Date.now();
     room.cardPositions[data.cardId] = data.newParentId;
     room.flippedCards[data.cardId] = false;
     room.gameA.pendingCardId = data.cardId;
+    persistRoom(room);
 
     return {
       ok: true,
@@ -348,7 +368,7 @@ function createRoomService({ config, deckStore, logger, validators }) {
       return { ok: false, rejectionKey: "flipPendingCard" };
     }
 
-    touchRoom(room);
+    room.lastActivityAt = Date.now();
     room.flippedCards[data.cardId] = true;
     room.gameA.pendingCardId = null;
 
@@ -363,6 +383,8 @@ function createRoomService({ config, deckStore, logger, validators }) {
       advanceTurn(room);
     }
 
+    persistRoom(room);
+
     return { ok: true };
   }
 
@@ -371,11 +393,12 @@ function createRoomService({ config, deckStore, logger, validators }) {
       return false;
     }
 
-    touchRoom(room);
+    room.lastActivityAt = Date.now();
     room.gameA.phase = "replace";
     room.gameA.timerEndsAt = null;
     room.gameA.roundNumber += 1;
     advanceTurn(room);
+    persistRoom(room);
     return true;
   }
 
@@ -385,7 +408,8 @@ function createRoomService({ config, deckStore, logger, validators }) {
       room.gameA.phase === "discuss" && room.gameA.timerDurationSeconds
         ? Date.now() + room.gameA.timerDurationSeconds * 1000
         : null;
-    touchRoom(room);
+    room.lastActivityAt = Date.now();
+    persistRoom(room);
   }
 
   function clearPendingAction(room) {
@@ -405,14 +429,22 @@ function createRoomService({ config, deckStore, logger, validators }) {
   function cleanupReconnectReservations(room) {
     const now = Date.now();
 
-    Object.entries(room.reconnectReservations || {}).forEach(([sessionId, reservation]) => {
-      if (!reservation || reservation.expiresAt <= now) {
-        delete room.reconnectReservations[sessionId];
+    Object.entries(room.reconnectReservations || {}).forEach(
+      ([sessionId, reservation]) => {
+        if (!reservation || reservation.expiresAt <= now) {
+          delete room.reconnectReservations[sessionId];
+        }
       }
-    });
+    );
   }
 
-  function reserveDisconnectedPlayer(room, socketId, disconnectedIndex, userName, wasHost) {
+  function reserveDisconnectedPlayer(
+    room,
+    socketId,
+    disconnectedIndex,
+    userName,
+    wasHost
+  ) {
     const playerSessionId = room.playerSessions[socketId];
 
     if (!playerSessionId) {
@@ -421,8 +453,7 @@ function createRoomService({ config, deckStore, logger, validators }) {
 
     cleanupReconnectReservations(room);
     room.reconnectReservations[playerSessionId] = {
-      insertIndex:
-        disconnectedIndex >= 0 ? disconnectedIndex : room.playerOrder.length,
+      insertIndex: disconnectedIndex >= 0 ? disconnectedIndex : room.playerOrder.length,
       userName,
       wasCurrentPlayer: getCurrentPlayerId(room) === socketId,
       wasHost,
@@ -481,7 +512,8 @@ function createRoomService({ config, deckStore, logger, validators }) {
       room.hostId = socketId;
     }
 
-    touchRoom(room);
+    room.lastActivityAt = Date.now();
+    persistRoom(room);
 
     return {
       room,
@@ -518,7 +550,8 @@ function createRoomService({ config, deckStore, logger, validators }) {
       room.hostId = room.playerOrder[0] || "";
     }
 
-    touchRoom(room);
+    room.lastActivityAt = Date.now();
+    persistRoom(room);
 
     return {
       roomCode: room.code,
@@ -531,15 +564,63 @@ function createRoomService({ config, deckStore, logger, validators }) {
     const now = Date.now();
 
     Object.entries(rooms).forEach(([roomCode, room]) => {
+      const reservationCountBeforeCleanup = Object.keys(
+        room.reconnectReservations || {}
+      ).length;
       cleanupReconnectReservations(room);
+      const reservationCountAfterCleanup = Object.keys(
+        room.reconnectReservations || {}
+      ).length;
       const isEmpty = Object.keys(room.players).length === 0;
       const isStale = now - room.lastActivityAt > config.ROOM_TTL_MS;
 
       if (isEmpty && isStale) {
-        delete rooms[roomCode];
+        deleteRoom(roomCode);
         logger.info("Removed stale room", { roomCode });
+      } else if (reservationCountBeforeCleanup !== reservationCountAfterCleanup) {
+        persistRoom(room);
       }
     });
+  }
+
+  function getDebugSnapshot() {
+    const roomSummaries = Object.values(rooms)
+      .map((room) => {
+        cleanupReconnectReservations(room);
+
+        return {
+          code: room.code,
+          currentPlayer: room.players[getCurrentPlayerId(room)] || "",
+          hostPlayer: getHostPlayerName(room),
+          lastActivityAt: room.lastActivityAt,
+          pendingCardId: room.gameA.pendingCardId,
+          phase: room.gameA.phase,
+          playerCount: room.playerOrder.length,
+          players: room.playerOrder
+            .map((socketId) => room.players[socketId])
+            .filter(Boolean),
+          reconnectReservations: Object.values(room.reconnectReservations || {}).map(
+            (reservation) => ({
+              expiresAt: reservation.expiresAt,
+              userName: reservation.userName,
+              wasHost: reservation.wasHost,
+            })
+          ),
+          tableCardCount: Object.keys(room.cardPositions).length,
+        };
+      })
+      .sort((left, right) => right.lastActivityAt - left.lastActivityAt);
+
+    return {
+      activePlayers: roomSummaries.reduce((total, room) => total + room.playerCount, 0),
+      activeRooms: roomSummaries.length,
+      reconnectReservations: roomSummaries.reduce(
+        (total, room) => total + room.reconnectReservations.length,
+        0
+      ),
+      rooms: roomSummaries,
+      storageMode: config.ROOM_STORAGE_MODE,
+    };
   }
 
   return {
@@ -554,6 +635,7 @@ function createRoomService({ config, deckStore, logger, validators }) {
     getGameState,
     getRoom,
     getRoomCount,
+    getDebugSnapshot,
     getRoomPlayers,
     getHostPlayerName,
     isHost,

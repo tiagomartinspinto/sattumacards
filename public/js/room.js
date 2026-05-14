@@ -38,7 +38,14 @@ function throttle(callback, limit) {
   };
 }
 
-export function createRoom({ socket, i18n, cards, showNotice, onJoinFailure, onRoomReady }) {
+export function createRoom({
+  socket,
+  i18n,
+  cards,
+  showNotice,
+  onJoinFailure,
+  onRoomReady,
+}) {
   let roomCode = "";
   let userName = "";
   let roomReady = false;
@@ -82,9 +89,10 @@ export function createRoom({ socket, i18n, cards, showNotice, onJoinFailure, onR
     const fragment = document.createDocumentFragment();
 
     players.forEach((playerEntry) => {
-      const player = typeof playerEntry === "string"
-        ? { name: playerEntry, isHost: false }
-        : playerEntry;
+      const player =
+        typeof playerEntry === "string"
+          ? { name: playerEntry, isHost: false }
+          : playerEntry;
       const playerElement = document.createElement("li");
       const colorDot = document.createElement("span");
       const nameElement = document.createElement("span");
@@ -111,6 +119,92 @@ export function createRoom({ socket, i18n, cards, showNotice, onJoinFailure, onR
     });
 
     playersList.appendChild(fragment);
+    updateObserverPanel();
+  }
+
+  function updateObserverPanel() {
+    const mobileInfo = document.getElementById("mobileInfoScreen");
+    const observerPanel = document.getElementById("mobileObserverPanel");
+    const observerRoomCode = document.getElementById("mobileObserverRoomCode");
+    const observerPhase = document.getElementById("mobileObserverPhase");
+    const observerTurn = document.getElementById("mobileObserverTurn");
+    const observerTimer = document.getElementById("mobileObserverTimer");
+    const observerPlayers = document.getElementById("mobileObserverPlayers");
+    const observerCards = document.getElementById("mobileObserverCards");
+    const observerEmpty = document.getElementById("mobileObserverEmpty");
+
+    if (
+      !mobileInfo ||
+      !observerPanel ||
+      !observerRoomCode ||
+      !observerPhase ||
+      !observerTurn ||
+      !observerTimer ||
+      !observerPlayers ||
+      !observerCards ||
+      !observerEmpty
+    ) {
+      return;
+    }
+
+    const hasRoom = Boolean(roomCode);
+    observerPanel.hidden = !hasRoom;
+    mobileInfo.classList.toggle("is-room-observer", hasRoom);
+
+    if (!hasRoom) {
+      return;
+    }
+
+    const scenarioEntries = cards.getScenarioEntries();
+    observerRoomCode.textContent = roomCode;
+    observerPhase.textContent = lastGameState
+      ? i18n.t(getPhaseLabelKey(lastGameState.phase))
+      : "—";
+    observerTurn.textContent = lastGameState
+      ? interpolate(i18n.t(getTurnHelpKey(lastGameState)), {
+          player: lastGameState.currentPlayer,
+        })
+      : "—";
+    observerTimer.textContent = lastGameState?.timerEndsAt
+      ? formatTimer(lastGameState.timerEndsAt - (Date.now() + serverClockOffset))
+      : i18n.t("timerOff");
+
+    observerPlayers.textContent = "";
+    lastPlayers.forEach((playerEntry) => {
+      const player =
+        typeof playerEntry === "string"
+          ? { name: playerEntry, isHost: false }
+          : playerEntry;
+      const item = document.createElement("li");
+      const suffix = [];
+
+      if (player.isHost) {
+        suffix.push(i18n.t("hostLabel"));
+      }
+
+      if (player.name === userName) {
+        suffix.push(i18n.t("selfLabel"));
+      }
+
+      item.textContent =
+        suffix.length > 0 ? `${player.name} (${suffix.join(", ")})` : player.name;
+      observerPlayers.appendChild(item);
+    });
+
+    observerCards.textContent = "";
+    scenarioEntries.forEach((entry) => {
+      const item = document.createElement("article");
+      const title = document.createElement("strong");
+      const text = document.createElement("p");
+
+      item.className = "mobile-observer-card";
+      title.textContent = entry.label;
+      text.textContent = entry.text;
+      item.append(title, text);
+      observerCards.appendChild(item);
+    });
+
+    observerEmpty.hidden = scenarioEntries.length > 0;
   }
 
   function copyRoomCode() {
@@ -203,7 +297,10 @@ export function createRoom({ socket, i18n, cards, showNotice, onJoinFailure, onR
     navigator.clipboard
       .writeText(scenarioText)
       .then(() => {
-        showNotice(i18n.t("copyResultsSuccessTitle"), i18n.t("copyResultsSuccessMessage"));
+        showNotice(
+          i18n.t("copyResultsSuccessTitle"),
+          i18n.t("copyResultsSuccessMessage")
+        );
       })
       .catch(() => {
         showNotice(i18n.t("copyResultsTitle"), scenarioText);
@@ -283,7 +380,8 @@ export function createRoom({ socket, i18n, cards, showNotice, onJoinFailure, onR
       return;
     }
 
-    const remainingMilliseconds = gameState.timerEndsAt - (Date.now() + serverClockOffset);
+    const remainingMilliseconds =
+      gameState.timerEndsAt - (Date.now() + serverClockOffset);
     timerDisplay.textContent = formatTimer(remainingMilliseconds);
 
     if (remainingMilliseconds <= 0 && timerNoticeKey !== String(gameState.timerEndsAt)) {
@@ -341,7 +439,10 @@ export function createRoom({ socket, i18n, cards, showNotice, onJoinFailure, onR
       replacementButton.classList.toggle("is-visible", gameState.phase === "discuss");
       replacementButton.textContent = i18n.t(getReplacementButtonKey(gameState));
       replacementButton.setAttribute("title", i18n.t(getReplacementButtonKey(gameState)));
-      replacementButton.setAttribute("aria-label", i18n.t(getReplacementButtonKey(gameState)));
+      replacementButton.setAttribute(
+        "aria-label",
+        i18n.t(getReplacementButtonKey(gameState))
+      );
     }
 
     if (copyResultsButton) {
@@ -361,6 +462,7 @@ export function createRoom({ socket, i18n, cards, showNotice, onJoinFailure, onR
 
     setManagementControlsDisabled(!gameState.canManageRoom);
     syncTimer(gameState);
+    updateObserverPanel();
   }
 
   function showRejectedAction({ key }) {
@@ -438,20 +540,25 @@ export function createRoom({ socket, i18n, cards, showNotice, onJoinFailure, onR
         card.classList.add("on-table");
         card.classList.remove("initial-animation");
       }
+
+      updateObserverPanel();
     });
 
     socket.on("cardText", ({ cardId, text }) => {
       cards.updateCardText(cardId, text);
+      updateObserverPanel();
     });
 
     socket.on("allCardTexts", ({ texts = {} }) => {
       Object.entries(texts).forEach(([cardId, text]) => {
         cards.updateCardText(cardId, text);
       });
+      updateObserverPanel();
     });
 
     socket.on("flipCard", ({ cardId, isFlipped }) => {
       document.getElementById(cardId)?.classList.toggle("flip", Boolean(isFlipped));
+      updateObserverPanel();
     });
 
     socket.on("resetDecks", (payload = {}) => {
@@ -461,7 +568,8 @@ export function createRoom({ socket, i18n, cards, showNotice, onJoinFailure, onR
 
       const resetBoard = () => {
         cards.resetDeckElements();
-        const hasVisibleCards = Object.keys(payload.boardState?.cardPositions || {}).length > 0;
+        const hasVisibleCards =
+          Object.keys(payload.boardState?.cardPositions || {}).length > 0;
 
         if (payload.animate && hasVisibleCards) {
           cards.applyBoardStateWithReveal(payload.boardState);
@@ -469,6 +577,7 @@ export function createRoom({ socket, i18n, cards, showNotice, onJoinFailure, onR
           cards.applyBoardState(payload.boardState);
         }
         cards.refreshTexts();
+        updateObserverPanel();
       };
 
       if (payload.animate) {
@@ -495,6 +604,7 @@ export function createRoom({ socket, i18n, cards, showNotice, onJoinFailure, onR
       url.searchParams.delete("create");
       window.history.replaceState({}, "", url);
       updateRoomCodeDisplay(roomCode);
+      updateObserverPanel();
 
       if (!roomReady) {
         roomReady = true;
@@ -529,9 +639,15 @@ export function createRoom({ socket, i18n, cards, showNotice, onJoinFailure, onR
     });
 
     socket.on("cursorUpdate", renderCursor);
-    socket.on("playerDisconnected", (disconnectedUserName) => {
-      pendingCursorUpdates.delete(disconnectedUserName);
-      document.getElementById(`cursor-${disconnectedUserName}`)?.remove();
+    socket.on("playerDisconnected", ({ userId, userName: disconnectedUserName } = {}) => {
+      if (userId) {
+        pendingCursorUpdates.delete(userId);
+        document.getElementById(`cursor-${userId}`)?.remove();
+      }
+
+      if (disconnectedUserName) {
+        showNotice(i18n.t("playerLeftTitle"), disconnectedUserName);
+      }
     });
   }
 

@@ -61,7 +61,9 @@ async function connectClient({ port, roomCode = "", playerSessionId = "" }) {
   const roomInfoPromise = onceWithTimeout(socket, "roomInfo");
   const sessionInfoPromise = onceWithTimeout(socket, "sessionInfo");
   const resetPayloadPromise = onceWithTimeout(socket, "resetDecks");
-  const sessionResumedPromise = onceWithTimeout(socket, "sessionResumed").catch(() => null);
+  const sessionResumedPromise = onceWithTimeout(socket, "sessionResumed").catch(
+    () => null
+  );
 
   socket.connect();
 
@@ -119,7 +121,10 @@ test("temporary host transfer keeps the room moving and original host can reclai
   t.after(() => runtime.server.close());
 
   const hostSessionId = "host-session-reconnect-123";
-  const host = await connectClient({ port: runtime.port, playerSessionId: hostSessionId });
+  const host = await connectClient({
+    port: runtime.port,
+    playerSessionId: hostSessionId,
+  });
   const hostName = host.userName;
 
   const guest = await connectClient({
@@ -169,7 +174,10 @@ test("invalid payloads are rejected", async (t) => {
   t.after(() => host.socket.close());
 
   host.socket.emit("requestCardMove", { bad: true });
-  assert.equal((await onceWithTimeout(host.socket, "actionRejected")).key, "invalidPayload");
+  assert.equal(
+    (await onceWithTimeout(host.socket, "actionRejected")).key,
+    "invalidPayload"
+  );
 });
 
 test("disconnecting during a pending turn clears the pending card and advances the room", async (t) => {
@@ -223,5 +231,8 @@ test("rate limiting rejects bursts of repeated requests", async (t) => {
     host.socket.emit("requestAllCardTexts", { language: "en" });
   }
 
-  assert.equal((await onceWithTimeout(host.socket, "actionRejected")).key, "tooManyRequests");
+  assert.equal(
+    (await onceWithTimeout(host.socket, "actionRejected")).key,
+    "tooManyRequests"
+  );
 });
