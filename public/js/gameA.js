@@ -7,11 +7,37 @@ import { initResponsive } from "./responsive.js";
 import { createRoom } from "./room.js";
 import { initThemes } from "./themes.js";
 
+const PLAYER_SESSION_STORAGE_KEY = "sattumaPlayerSessionId";
+
+function generatePlayerSessionId() {
+  if (window.crypto?.randomUUID) {
+    return window.crypto.randomUUID();
+  }
+
+  return `sattuma-${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
+}
+
+function getPlayerSessionId() {
+  const existingSessionId = localStorage.getItem(PLAYER_SESSION_STORAGE_KEY);
+
+  if (existingSessionId) {
+    return existingSessionId;
+  }
+
+  const nextSessionId = generatePlayerSessionId();
+  localStorage.setItem(PLAYER_SESSION_STORAGE_KEY, nextSessionId);
+  return nextSessionId;
+}
+
 function createSocket() {
   const requestedRoomCode =
     new URLSearchParams(window.location.search).get("room") || "";
+  const playerSessionId = getPlayerSessionId();
 
-  return window.io({ query: { room: requestedRoomCode } });
+  return window.io({
+    auth: { playerSessionId },
+    query: { room: requestedRoomCode },
+  });
 }
 
 async function initGame() {
@@ -38,7 +64,6 @@ async function initGame() {
   document
     .getElementById("roundTimerSelector")
     ?.addEventListener("change", (event) => room.setTimerDuration(event.target.value));
-  document.addEventListener("contextmenu", (event) => event.preventDefault());
 
   i18n.onChange(() => {
     room.refreshLabels();

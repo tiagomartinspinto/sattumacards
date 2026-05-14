@@ -80,18 +80,27 @@ export function createRoom({ socket, i18n, cards, showNotice }) {
     playersList.textContent = "";
     const fragment = document.createDocumentFragment();
 
-    players.forEach((player) => {
+    players.forEach((playerEntry) => {
+      const player = typeof playerEntry === "string"
+        ? { name: playerEntry, isHost: false }
+        : playerEntry;
       const playerElement = document.createElement("li");
       const colorDot = document.createElement("span");
       const nameElement = document.createElement("span");
 
       colorDot.className = "player-dot";
       colorDot.style.backgroundColor =
-        CURSOR_COLORS[Math.abs(hashCode(player)) % CURSOR_COLORS.length];
-      nameElement.textContent = player;
+        CURSOR_COLORS[Math.abs(hashCode(player.name)) % CURSOR_COLORS.length];
+      nameElement.textContent = player.name;
       playerElement.append(colorDot, nameElement);
 
-      if (player === userName) {
+      if (player.isHost) {
+        const hostElement = document.createElement("strong");
+        hostElement.textContent = i18n.t("hostLabel");
+        playerElement.appendChild(hostElement);
+      }
+
+      if (player.name === userName) {
         const selfElement = document.createElement("strong");
         selfElement.textContent = i18n.t("selfLabel");
         playerElement.appendChild(selfElement);
@@ -163,6 +172,19 @@ export function createRoom({ socket, i18n, cards, showNotice }) {
 
   function setTimerDuration(durationSeconds) {
     socket.emit("setTimerDuration", { durationSeconds: Number(durationSeconds) });
+  }
+
+  function setManagementControlsDisabled(isDisabled) {
+    [
+      document.getElementById("quickDealBtn"),
+      document.getElementById("resetBtn"),
+      document.getElementById("startReplacementBtn"),
+      document.getElementById("roundTimerSelector"),
+    ].forEach((element) => {
+      if (element) {
+        element.disabled = isDisabled;
+      }
+    });
   }
 
   function getPhaseLabelKey(phase) {
@@ -280,6 +302,7 @@ export function createRoom({ socket, i18n, cards, showNotice }) {
       replacementButton.setAttribute("aria-label", i18n.t(getReplacementButtonKey(gameState)));
     }
 
+    setManagementControlsDisabled(!gameState.canManageRoom);
     syncTimer(gameState);
   }
 
@@ -414,6 +437,31 @@ export function createRoom({ socket, i18n, cards, showNotice }) {
       url.searchParams.set("lang", i18n.language);
       window.history.replaceState({}, "", url);
       updateRoomCodeDisplay(roomCode);
+    });
+
+    socket.on("sessionInfo", ({ playerSessionId }) => {
+      if (playerSessionId) {
+        localStorage.setItem("sattumaPlayerSessionId", playerSessionId);
+      }
+    });
+
+    socket.on("sessionResumed", () => {
+      showNotice(i18n.t("reconnectedTitle"), i18n.t("reconnectedMessage"));
+    });
+
+    socket.on("serverError", ({ key = "serverBusy" } = {}) => {
+      showRejectedAction({ key });
+    });
+
+    socket.on("connect_error", (error) => {
+      const key = error?.data?.key || "serverBusy";
+      showRejectedAction({ key });
+    });
+
+    socket.on("disconnect", (reason) => {
+      if (reason !== "io client disconnect") {
+        showNotice(i18n.t("connectionLostTitle"), i18n.t("connectionLostMessage"));
+      }
     });
 
     socket.on("cursorUpdate", renderCursor);

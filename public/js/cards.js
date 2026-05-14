@@ -184,13 +184,11 @@ export function createCards({ socket, i18n, showNotice }) {
     window.setTimeout(() => {
       callback();
       if (resetButton) {
-        resetButton.disabled = false;
         resetButton.classList.remove("is-loading");
         resetButton.setAttribute("aria-label", i18n.t("shuffleButton"));
         resetButton.setAttribute("title", i18n.t("shuffleButton"));
       }
       if (quickDealButton) {
-        quickDealButton.disabled = false;
         quickDealButton.classList.remove("is-loading");
         quickDealButton.setAttribute("aria-label", i18n.t("quickDealButton"));
         quickDealButton.setAttribute("title", i18n.t("quickDealButton"));
