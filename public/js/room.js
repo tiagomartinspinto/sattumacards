@@ -50,6 +50,7 @@ export function createRoom({
   let roomCode = "";
   let userName = "";
   let roomReady = false;
+  let roomExitInProgress = false;
   let lastPlayers = [];
   let lastGameState = null;
   let serverClockOffset = 0;
@@ -308,6 +309,30 @@ export function createRoom({
       });
   }
 
+  function clearLocalRoomState() {
+    if (timerInterval) {
+      window.clearInterval(timerInterval);
+      timerInterval = null;
+    }
+
+    roomCode = "";
+    roomReady = false;
+    lastPlayers = [];
+    lastGameState = null;
+    updateRoomCodeDisplay("...");
+    updatePlayersList([]);
+    cards.resetDeckElements();
+    setManagementControlsDisabled(true);
+    updateObserverPanel();
+  }
+
+  function completeRoomExit() {
+    roomExitInProgress = true;
+    clearLocalRoomState();
+    socket.close();
+    onLeaveRoom?.();
+  }
+
   function leaveRoom() {
     const confirmationMessage = `${i18n.t("confirmLeaveTitle")}\n\n${i18n.t(
       "confirmLeaveMessage"
@@ -317,17 +342,26 @@ export function createRoom({
       return;
     }
 
-    if (timerInterval) {
-      window.clearInterval(timerInterval);
-      timerInterval = null;
+    completeRoomExit();
+  }
+
+  function requestCloseRoom() {
+    const closeRoomButton = document.getElementById("closeRoomBtn");
+
+    if (closeRoomButton?.disabled || closeRoomButton?.hidden) {
+      return;
     }
 
-    socket.close();
-    roomCode = "";
-    lastPlayers = [];
-    lastGameState = null;
-    updateObserverPanel();
-    onLeaveRoom?.();
+    const confirmationMessage = `${i18n.t("confirmCloseRoomTitle")}\n\n${i18n.t(
+      "confirmCloseRoomMessage"
+    )}`;
+
+    if (!window.confirm(confirmationMessage)) {
+      return;
+    }
+
+    closeRoomButton.disabled = true;
+    socket.emit("closeRoom");
   }
 
   function setTimerDuration(durationSeconds) {
@@ -340,6 +374,7 @@ export function createRoom({
       document.getElementById("resetBtn"),
       document.getElementById("startReplacementBtn"),
       document.getElementById("roundTimerSelector"),
+      document.getElementById("closeRoomBtn"),
     ].forEach((element) => {
       if (element) {
         element.disabled = isDisabled;
@@ -470,6 +505,12 @@ export function createRoom({
 
     if (copyResultsButton) {
       copyResultsButton.disabled = gameState.tableCardCount === 0;
+    }
+
+    const closeRoomButton = document.getElementById("closeRoomBtn");
+
+    if (closeRoomButton) {
+      closeRoomButton.hidden = !gameState.canManageRoom;
     }
 
     if (
@@ -645,6 +686,20 @@ export function createRoom({
       showNotice(i18n.t("reconnectedTitle"), i18n.t("reconnectedMessage"));
     });
 
+    socket.on("roomClosed", ({ closedBy } = {}) => {
+      const closedByCurrentUser = closedBy && closedBy === userName;
+
+      showNotice(
+        i18n.t(closedByCurrentUser ? "roomClosedByYouTitle" : "roomClosedTitle"),
+        interpolate(
+          i18n.t(closedByCurrentUser ? "roomClosedByYouMessage" : "roomClosedMessage"),
+          { player: closedBy }
+        )
+      );
+
+      completeRoomExit();
+    });
+
     socket.on("serverError", ({ key = "serverBusy" } = {}) => {
       showRejectedAction({ key });
     });
@@ -656,6 +711,10 @@ export function createRoom({
     });
 
     socket.on("disconnect", (reason) => {
+      if (roomExitInProgress) {
+        return;
+      }
+
       if (reason !== "io client disconnect") {
         showNotice(i18n.t("connectionLostTitle"), i18n.t("connectionLostMessage"));
       }
@@ -687,6 +746,7 @@ export function createRoom({
     copyResults,
     copyRoomCode,
     leaveRoom,
+    requestCloseRoom,
     refreshLabels,
     requestRandomSituation,
     requestReset,

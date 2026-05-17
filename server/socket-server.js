@@ -89,6 +89,11 @@ function createGameSocketServer({ server, config, logger, roomService, validator
     const { handler, hostOnly = false, validator } = options;
 
     socket.on(eventName, (rawData) => {
+      if (room.isClosed) {
+        rejectAction(socket, "roomExpired");
+        return;
+      }
+
       if (!consumeRateLimit(socket, eventName)) {
         rejectAction(socket, "tooManyRequests");
         return;
@@ -268,6 +273,14 @@ function createGameSocketServer({ server, config, logger, roomService, validator
       hostOnly: true,
     });
 
+    registerSocketAction(socket, room, "closeRoom", {
+      handler: () => {
+        roomService.closeRoom(room);
+        io.to(room.code).emit("roomClosed", { closedBy: userName });
+      },
+      hostOnly: true,
+    });
+
     registerSocketAction(socket, room, "requestCardText", {
       handler: (data) => {
         roomService.touchRoom(room);
@@ -305,6 +318,14 @@ function createGameSocketServer({ server, config, logger, roomService, validator
     });
 
     socket.on("disconnect", () => {
+      if (room.isClosed) {
+        logger.info("Player disconnected from closed room", {
+          roomCode: room.code,
+          userName,
+        });
+        return;
+      }
+
       const disconnectResult = roomService.disconnectPlayer(room, socket.id);
 
       emitBoardReset(room);

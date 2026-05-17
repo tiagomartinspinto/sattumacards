@@ -25,8 +25,6 @@ The game flow supports:
 
 ## Running locally
 
-Use Node.js `22.13.0` or newer. This is the first Node release line where `node:sqlite` is available without an extra CLI flag, which keeps the optional SQLite mode consistent with the documented setup.
-
 Install dependencies:
 
 ```bash
@@ -86,27 +84,12 @@ By default, room state is kept only in server memory.
 
 An optional SQLite-backed room store is available behind environment variables and is disabled by default. This keeps the default setup simple and privacy-friendly while leaving room for more persistent workshop deployments later.
 
-SQLite mode is still experimental in this project:
-
-- it is not the default
-- it is not part of CI yet
-- it should be treated as an opt-in deployment path
-- Node itself still labels `node:sqlite` as experimental / active-development
-
 Relevant environment variables are listed in `.env.example`:
 
 - `ROOM_STORAGE_MODE=memory`
 - `SQLITE_DB_PATH=.data/sattuma.sqlite`
 
-SQLite mode requires Node.js `22.13.0` or newer and a writable filesystem path for the database file.
-
-Simple manual SQLite check:
-
-1. Set `ROOM_STORAGE_MODE=sqlite`.
-2. Start the app.
-3. Create a room.
-4. Restart the server.
-5. Confirm the room state reloads from the configured SQLite file.
+SQLite mode requires a Node.js runtime that supports `node:sqlite`.
 
 ## Privacy and data note
 
@@ -114,7 +97,7 @@ Room state is temporary and kept in server memory by default. No user accounts o
 
 The browser stores a short opaque reconnect token locally so the same participant can resume a room more reliably after a reload or brief network interruption.
 
-## Development tooling
+## Development setup
 
 This repository now includes real linting, formatting, and browser regression coverage.
 
@@ -170,7 +153,6 @@ The production build is self-contained:
 - the Socket.IO client is served locally by the server
 - the main app does not depend on third-party script CDNs
 - origin restrictions and HTTP hardening are configured on the server
-- the Docker and CI examples use Node.js `22.13.0` or newer
 
 Deployment examples are included for:
 
@@ -194,7 +176,6 @@ public/i18n/               Interface translations
 public/content/            Localized modal content
 public/cards/              Localized deck text files
 deployment/                Deployment examples and service templates
-docs/archive/              Archived historical static-site files
 scripts/                   Local validation scripts
 tests/                     Multiplayer and browser-level tests
 ```

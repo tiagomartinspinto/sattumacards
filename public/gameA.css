@@ -17,7 +17,7 @@
   --shadow-color: rgba(0, 0, 0, 0.32);
   --card-width: 100px;
   --card-height: 150px;
-  --card-lift: -100px;
+  --card-lift: -36px;
   --deck-gap: 30px;
   --dropzone-gap: 20px;
 }
@@ -38,6 +38,14 @@ body {
   box-sizing: border-box;
 }
 
+body.is-landing {
+  justify-content: center;
+}
+
+body.is-board {
+  justify-content: flex-start;
+}
+
 [hidden] {
   display: none !important;
 }
@@ -50,20 +58,22 @@ body {
 }
 
 .landing-screen {
-  width: min(720px, calc(100vw - 32px));
+  width: min(760px, calc(100vw - 32px));
   background: var(--surface-bg);
   border: 1px solid var(--border-color);
   border-radius: 8px;
   box-shadow: 0 18px 44px var(--shadow-color);
-  padding: 32px 28px;
+  padding: 36px 32px;
   text-align: center;
 }
 
 .landing-logo {
   display: block;
-  height: auto;
-  margin: 0 auto 18px;
-  max-width: min(320px, 72vw);
+  margin: 0 auto 22px;
+  width: min(520px, 82vw);
+  height: clamp(96px, 13vw, 136px);
+  object-fit: cover;
+  object-position: center 44%;
 }
 
 .landing-kicker {
@@ -140,6 +150,7 @@ body {
   align-items: center;
   display: flex;
   flex-direction: column;
+  gap: clamp(10px, 1.8vh, 18px);
 }
 
 .mobile-info {
@@ -172,6 +183,10 @@ body {
 
 .room-panel-action-button {
   margin: 0;
+}
+
+.room-panel-danger-button {
+  border-color: rgba(255, 255, 255, 0.22);
 }
 
 .debug-panel {
@@ -491,21 +506,18 @@ body {
 /* ----------------------------------------- */
 
 .title {
-  position: relative;
-  z-index: 2;
   display: flex;
-  top: 10px; /* Adjust this value as needed */
-  width: 100%; /* To center the image */
-  text-align: center; /* To center the image inside the div */
   justify-content: center;
-  margin-bottom: clamp(84px, 13vh, 150px);
-  margin-top: clamp(14px, 5vh, 50px);
+  margin-bottom: clamp(188px, 21vh, 212px);
+  margin-top: clamp(14px, 4vh, 42px);
+  width: 100%;
 }
 
 .title-image {
-  /* max-width: 100%; Ensures image is responsive */
-  height: auto;
-  width: clamp(150px, 18vw, 200px); /* Maintains aspect ratio */
+  width: clamp(248px, 24vw, 320px);
+  height: clamp(56px, 6vw, 74px);
+  object-fit: cover;
+  object-position: center 44%;
 }
 
 /* @media screen and (max-width: 768px) { */
@@ -677,7 +689,7 @@ button {
   }
 }
 
-img {
+.quick-deal-logo-button img {
   width: 20px; /* Adjusts the width of the image */
   height: auto; /* Keeps the aspect ratio of the image */
 }
@@ -1234,7 +1246,7 @@ img {
   :root {
     --card-width: 86px;
     --card-height: 129px;
-    --card-lift: -86px;
+    --card-lift: -32px;
     --deck-gap: 20px;
     --dropzone-gap: 14px;
   }
@@ -1245,12 +1257,13 @@ img {
   }
 
   .title {
-    margin-bottom: 76px;
+    margin-bottom: 166px;
     margin-top: 8px;
   }
 
   .title-image {
-    width: 150px;
+    height: 62px;
+    width: 228px;
   }
 
   .button-container {
@@ -1266,7 +1279,7 @@ img {
   :root {
     --card-width: 72px;
     --card-height: 108px;
-    --card-lift: -72px;
+    --card-lift: -28px;
     --deck-gap: 14px;
     --dropzone-gap: 10px;
   }
@@ -1287,12 +1300,13 @@ img {
   }
 
   .title {
-    margin-bottom: 58px;
+    margin-bottom: 142px;
     margin-top: 4px;
   }
 
   .title-image {
-    width: 126px;
+    height: 54px;
+    width: 188px;
   }
 
   .card .back {
@@ -1407,9 +1421,11 @@ img {
 
   .mobile-info-logo {
     display: block;
-    height: auto;
     margin: 0 auto 22px;
-    width: min(190px, 58vw);
+    width: min(240px, 70vw);
+    height: 72px;
+    object-fit: cover;
+    object-position: center 44%;
   }
 
   .mobile-info-kicker {

@@ -40,6 +40,8 @@ function shouldAutoStart() {
 }
 
 function showLandingScreen({ prefillRoomCode = "" } = {}) {
+  document.body.classList.remove("is-board");
+  document.body.classList.add("is-landing");
   document.getElementById("landingScreen")?.removeAttribute("hidden");
   document.getElementById("gameBoardShell")?.setAttribute("hidden", "hidden");
 
@@ -51,6 +53,8 @@ function showLandingScreen({ prefillRoomCode = "" } = {}) {
 }
 
 function showGameBoard() {
+  document.body.classList.remove("is-landing");
+  document.body.classList.add("is-board");
   document.getElementById("landingScreen")?.setAttribute("hidden", "hidden");
   document.getElementById("gameBoardShell")?.removeAttribute("hidden");
 }
@@ -173,6 +177,9 @@ async function initGame() {
 
   document.getElementById("copyRoomBtn")?.addEventListener("click", room.copyRoomCode);
   document.getElementById("leaveRoomBtn")?.addEventListener("click", room.leaveRoom);
+  document
+    .getElementById("closeRoomBtn")
+    ?.addEventListener("click", room.requestCloseRoom);
   document.getElementById("copyResultsBtn")?.addEventListener("click", room.copyResults);
   document
     .getElementById("quickDealBtn")

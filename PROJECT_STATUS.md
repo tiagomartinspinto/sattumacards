@@ -2,50 +2,46 @@
 
 ## Completed in this session
 
-- Cleaned up the status file by removing duplicated remaining tasks and tightening the risk summary.
-- Archived the obsolete root static-site files under `docs/archive/legacy-static-site/` so the repository has one live app entrypoint.
-- Added a `package.json` Node engines requirement for Node.js `22.13.0` or newer and aligned CI plus Docker to the same runtime family.
-- Marked the optional SQLite storage mode as experimental in docs and deployment notes while keeping it disabled by default.
-- Manually sanity-checked the SQLite path by creating a room in SQLite mode and confirming a fresh runtime could reload it from the same database file.
-- Updated `README.md`, `.env.example`, deployment notes, and CI/runtime metadata to reflect the stabilized Node and SQLite expectations.
-- Re-ran `npm run check`, `npm run test`, `npm run format:check`, and `npm run lint` successfully after the cleanup.
-- Re-scanned project files for accidental vendor/tool wording and kept the requested terms out of the tracked project files.
+- Cleaned up the top-of-board logo layout so the Sattuma wordmark has a protected area and no longer gets visually crowded by the deck stack.
+- Enlarged and cropped the landing-screen logo so it reads as the clear visual anchor on the create/join room screen.
+- Clarified room exit actions in both languages:
+  - `Leave room` / `Poistu huoneesta` returns the player to the room menu
+  - host-only `Close room` / `Sulje huone` ends the shared room for everyone
+- Added room-close confirmation flow, clean landing-screen return, and URL query cleanup for both leaving and closing a room.
+- Kept the new room-close behavior small and host-only by adding the lightest server/client support needed for a focused UI pass.
+- Updated Playwright coverage for the landing logo, room exit flow, host room-close flow, modal keyboard flow, and board-logo layout separation.
+- Re-ran `npm run check` successfully after the UI updates.
+- Re-scanned tracked files for accidental vendor or assistant wording and kept those references out of the project files.
 
 ## Files changed
 
-- `README.md`
 - `PROJECT_STATUS.md`
-- `.env.example`
-- `Dockerfile`
-- `deployment/README.md`
-- `.github/workflows/ci.yml`
-- `package.json`
-- `docs/archive/legacy-static-site/README.md`
-- `docs/archive/legacy-static-site/index.html`
-- `docs/archive/legacy-static-site/ohjeet.html`
-- `docs/archive/legacy-static-site/index.js`
-- `docs/archive/legacy-static-site/css/index.css`
-- `docs/archive/legacy-static-site/css/ohjeet.css`
-- `eslint.config.js`
+- `public/gameA.css`
+- `public/index.html`
+- `public/js/gameA.js`
+- `public/js/room.js`
+- `public/i18n/en.json`
+- `public/i18n/fi.json`
+- `server/room-service.js`
+- `server/socket-server.js`
+- `tests/e2e/app.spec.js`
 
 ## Remaining tasks
 
-- Decide whether custom player names should replace the current automatic animal naming.
-- Decide whether the plain-text export should also support a downloadable text or PDF artifact in addition to clipboard copying.
-- Decide whether the optional SQLite mode should be exercised in CI or remain a manual deployment feature only.
-- Decide whether the development debug panel should stay purely local or also become a protected admin route in hosted workshop environments.
+- Do one manual visual pass on an actual laptop browser window to confirm the top board spacing still feels balanced outside headless test rendering.
+- Decide whether the host-only room-close action should later appear in a stronger visual style or stay as a quiet utility action.
+- Decide whether the file-based `file://` preview should be retired in favor of always using the local server URL for consistency.
 
 ## Known issues or risks
 
-- Default operation is still memory-only. Experimental SQLite persistence exists, but it is opt-in and not covered by CI yet.
-- Reconnect recovery still depends on the same browser keeping its local reconnect token.
-- Host control is intentionally temporary-transfer based, so it can move once on disconnect and once again on reclaim.
-- The archived static-site prototype is kept only under `docs/archive/legacy-static-site/` for historical reference and is not part of the live app.
+- The room-close flow is intentionally lightweight: it removes the live room and returns connected players to the menu, but it does not preserve a room summary or archive.
+- The logo spacing now depends on CSS cropping against the current wordmark asset. If that image file changes significantly, the title spacing should be rechecked.
+- Multiplayer room state remains temporary unless optional persistence is enabled elsewhere in the app configuration.
 
 ## Manual tests to run next
 
-1. Start the app in development mode and confirm the footer version and debug panel appear together.
-2. Open a room on a phone-sized viewport and confirm the mobile observer panel updates when table cards change on a larger host screen.
-3. Enable experimental `ROOM_STORAGE_MODE=sqlite`, restart the server, and confirm active room state survives a process restart in a writable environment.
-4. Deploy once with the provided Docker or platform example files and confirm `/health` remains reachable through the real reverse proxy.
-5. Open a modal from both the burger menu and a direct trigger and confirm focus always returns to a logical visible control after closing.
+1. Open the app at desktop size and confirm the board logo still feels comfortably separated from the deck stack in both English and Finnish.
+2. From one browser as host and a second browser as guest, verify `Leave room` only affects the current player while `Close room` returns everyone to the landing screen.
+3. Confirm the room URL is cleaned back to the menu state after both leaving and closing a room.
+4. Open the landing screen on a smaller laptop viewport and confirm the larger logo stays readable without pushing the create/join controls below the fold.
+5. Repeat the modal keyboard flow manually once in a real browser to confirm Escape and focus return still feel natural outside automation.

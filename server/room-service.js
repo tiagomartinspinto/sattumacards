@@ -43,6 +43,7 @@ function createRoomService({ config, deckStore, logger, roomStore, validators })
     rooms[roomCode] = {
       code: roomCode,
       hostId: "",
+      isClosed: false,
       players: {},
       playerOrder: [],
       playerSessions: {},
@@ -71,6 +72,10 @@ function createRoomService({ config, deckStore, logger, roomStore, validators })
   }
 
   function touchRoom(room) {
+    if (room.isClosed) {
+      return;
+    }
+
     room.lastActivityAt = Date.now();
     persistRoom(room);
   }
@@ -523,6 +528,14 @@ function createRoomService({ config, deckStore, logger, roomStore, validators })
   }
 
   function disconnectPlayer(room, socketId) {
+    if (room.isClosed) {
+      return {
+        roomCode: room.code,
+        userName: room.players[socketId] || "",
+        reassignedHost: "",
+      };
+    }
+
     const currentPlayerIdBeforeDisconnect = getCurrentPlayerId(room);
     const disconnectedIndex = room.playerOrder.indexOf(socketId);
     const wasHost = room.hostId === socketId;
@@ -558,6 +571,12 @@ function createRoomService({ config, deckStore, logger, roomStore, validators })
       userName,
       reassignedHost: getHostPlayerName(room),
     };
+  }
+
+  function closeRoom(room) {
+    room.isClosed = true;
+    deleteRoom(room.code);
+    logger.info("Closed room", { roomCode: room.code });
   }
 
   function cleanupRooms() {
@@ -641,6 +660,7 @@ function createRoomService({ config, deckStore, logger, roomStore, validators })
     isHost,
     joinRoom,
     moveCard,
+    closeRoom,
     resetRoomCards,
     setTimerDuration,
     startReplacementPhase,

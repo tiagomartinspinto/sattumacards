@@ -8,7 +8,7 @@ The format follows Keep a Changelog and the project uses Semantic Versioning.
 
 ### Added
 
-- real ESLint and Prettier tooling
+- real ESLint and Prettier setup
 - browser-level Playwright regression tests
 - optional storage mode scaffolding with SQLite support kept disabled by default
 - a development-only debug panel for active rooms and reconnect state
