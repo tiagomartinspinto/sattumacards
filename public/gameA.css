@@ -480,13 +480,14 @@ body {
 /* ----------------------------------------- */
 
 .title {
-  position: static;
+  position: relative;
+  z-index: 2;
   display: flex;
   top: 10px; /* Adjust this value as needed */
   width: 100%; /* To center the image */
   text-align: center; /* To center the image inside the div */
   justify-content: center;
-  margin-bottom: clamp(54px, 9vh, 110px);
+  margin-bottom: clamp(84px, 13vh, 150px);
   margin-top: clamp(14px, 5vh, 50px);
 }
 
