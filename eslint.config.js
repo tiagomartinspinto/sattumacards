@@ -5,6 +5,7 @@ module.exports = [
   {
     ignores: [
       "node_modules/**",
+      "docs/archive/**",
       "public/cards/**",
       "public/content/**",
       "coverage/**",
