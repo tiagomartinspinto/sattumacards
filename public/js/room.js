@@ -44,6 +44,7 @@ export function createRoom({
   cards,
   showNotice,
   onJoinFailure,
+  onLeaveRoom,
   onRoomReady,
 }) {
   let roomCode = "";
@@ -305,6 +306,28 @@ export function createRoom({
       .catch(() => {
         showNotice(i18n.t("copyResultsTitle"), scenarioText);
       });
+  }
+
+  function leaveRoom() {
+    const confirmationMessage = `${i18n.t("confirmLeaveTitle")}\n\n${i18n.t(
+      "confirmLeaveMessage"
+    )}`;
+
+    if (!window.confirm(confirmationMessage)) {
+      return;
+    }
+
+    if (timerInterval) {
+      window.clearInterval(timerInterval);
+      timerInterval = null;
+    }
+
+    socket.close();
+    roomCode = "";
+    lastPlayers = [];
+    lastGameState = null;
+    updateObserverPanel();
+    onLeaveRoom?.();
   }
 
   function setTimerDuration(durationSeconds) {
@@ -663,6 +686,7 @@ export function createRoom({
   return {
     copyResults,
     copyRoomCode,
+    leaveRoom,
     refreshLabels,
     requestRandomSituation,
     requestReset,

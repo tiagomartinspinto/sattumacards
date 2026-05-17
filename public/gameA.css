@@ -163,6 +163,17 @@ body {
   padding: 6px 10px;
 }
 
+.room-panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.room-panel-action-button {
+  margin: 0;
+}
+
 .debug-panel {
   background: var(--surface-bg);
   border: 1px solid var(--border-color);

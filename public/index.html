@@ -318,18 +318,32 @@
         <div class="game-info-container">
           <div class="room-panel-header">
             <span class="room-panel-eyebrow" data-i18n="roomPanel">Pelihuone</span>
-            <button
-              class="copy-room-button"
-              id="copyRoomBtn"
-              type="button"
-              title="Kopioi huoneen koodi"
-              aria-label="Kopioi huoneen koodi"
-              data-i18n-title="copyRoom"
-              data-i18n-aria-label="copyRoom"
-              data-i18n="copyRoomShort"
-            >
-              Kopioi pelilinkki
-            </button>
+            <div class="room-panel-actions">
+              <button
+                class="copy-room-button room-panel-action-button"
+                id="copyRoomBtn"
+                type="button"
+                title="Kopioi huoneen koodi"
+                aria-label="Kopioi huoneen koodi"
+                data-i18n-title="copyRoom"
+                data-i18n-aria-label="copyRoom"
+                data-i18n="copyRoomShort"
+              >
+                Kopioi pelilinkki
+              </button>
+              <button
+                class="copy-room-button room-panel-action-button"
+                id="leaveRoomBtn"
+                type="button"
+                title="Palaa huonevalikkoon"
+                aria-label="Palaa huonevalikkoon"
+                data-i18n-title="leaveRoom"
+                data-i18n-aria-label="leaveRoom"
+                data-i18n="leaveRoomShort"
+              >
+                Huonevalikkoon
+              </button>
+            </div>
           </div>
           <div class="room-code-row">
             <span data-i18n="roomCodeLabel">Koodi:</span>

@@ -160,11 +160,19 @@ async function initGame() {
     onRoomReady: () => {
       showGameBoard();
     },
+    onLeaveRoom: () => {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("room");
+      url.searchParams.delete("create");
+      window.history.replaceState({}, "", url);
+      showLandingScreen();
+    },
   });
 
   initDragAndDrop(socket);
 
   document.getElementById("copyRoomBtn")?.addEventListener("click", room.copyRoomCode);
+  document.getElementById("leaveRoomBtn")?.addEventListener("click", room.leaveRoom);
   document.getElementById("copyResultsBtn")?.addEventListener("click", room.copyResults);
   document
     .getElementById("quickDealBtn")
