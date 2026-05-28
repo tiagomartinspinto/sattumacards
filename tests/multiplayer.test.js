@@ -116,6 +116,21 @@ test("guest cannot use host-only room actions", async (t) => {
   assert.equal((await onceWithTimeout(guest.socket, "actionRejected")).key, "hostOnly");
 });
 
+test("production app config hides developer UI", async (t) => {
+  const runtime = await startTestRuntime({ NODE_ENV: "production" });
+  t.after(() => runtime.server.close());
+
+  const configResponse = await fetch(`http://127.0.0.1:${runtime.port}/app-config`);
+  const appConfig = await configResponse.json();
+
+  assert.equal(configResponse.status, 200);
+  assert.equal(appConfig.enableDebugPanel, false);
+  assert.equal(appConfig.showVersionLabel, false);
+
+  const debugResponse = await fetch(`http://127.0.0.1:${runtime.port}/debug/state`);
+  assert.equal(debugResponse.status, 404);
+});
+
 test("temporary host transfer keeps the room moving and original host can reclaim it on reconnect", async (t) => {
   const runtime = await startTestRuntime({ RECONNECT_GRACE_MS: 300 });
   t.after(() => runtime.server.close());

@@ -8,6 +8,8 @@
   --control-hover-bg: #26333b;
   --accent-color: #ffd700;
   --accent-text: #1e272e;
+  --danger-color: #ff7a6f;
+  --danger-bg: rgba(255, 122, 111, 0.1);
   --border-color: rgba(255, 215, 0, 0.86);
   --dropzone-border: rgba(30, 39, 46, 0.72);
   --dropzone-bg: rgba(30, 39, 46, 0.08);
@@ -67,13 +69,13 @@ body.is-board {
   text-align: center;
 }
 
+/* sattuma-wordmark.png is a single cropped export of the original wordmark,
+   so the app can render the logo with natural sizing instead of live cropping. */
 .landing-logo {
   display: block;
-  margin: 0 auto 22px;
-  width: min(520px, 82vw);
-  height: clamp(96px, 13vw, 136px);
-  object-fit: cover;
-  object-position: center 44%;
+  height: auto;
+  margin: 0 auto 24px;
+  width: min(500px, 82vw);
 }
 
 .landing-kicker {
@@ -87,16 +89,21 @@ body.is-board {
 .landing-screen h1 {
   color: var(--control-text);
   font-size: 30px;
-  margin: 0 0 14px;
+  margin: 0 0 12px;
 }
 
 .landing-intro,
 .landing-note {
   color: var(--control-muted);
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1.55;
   margin: 0 auto;
-  max-width: 56ch;
+  max-width: 46ch;
+}
+
+.landing-note {
+  font-size: 12px;
+  opacity: 0.76;
 }
 
 .landing-actions {
@@ -167,26 +174,15 @@ body.is-board {
   width: 100%;
 }
 
+.app-footer[hidden] {
+  display: none !important;
+}
+
 .app-version {
   background-color: rgba(0, 0, 0, 0.18);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 8px;
   padding: 6px 10px;
-}
-
-.room-panel-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: flex-end;
-}
-
-.room-panel-action-button {
-  margin: 0;
-}
-
-.room-panel-danger-button {
-  border-color: rgba(255, 255, 255, 0.22);
 }
 
 .debug-panel {
@@ -514,20 +510,9 @@ body.is-board {
 }
 
 .title-image {
+  height: auto;
   width: clamp(248px, 24vw, 320px);
-  height: clamp(56px, 6vw, 74px);
-  object-fit: cover;
-  object-position: center 44%;
 }
-
-/* @media screen and (max-width: 768px) { */
-/* .title { */
-/* top: 5px; Smaller top space for smaller screens */
-/* } */
-/* .title-image { */
-/* max-width: 80%; Smaller image for smaller screens */
-/* } */
-/* } */
 
 /* ----------------------------------------- */
 
@@ -1051,7 +1036,7 @@ button {
 
 .game-info-container {
   flex: 1;
-  padding: 14px;
+  padding: 16px;
   border: 1px solid var(--border-color);
   border-radius: 8px;
   background-color: var(--surface-bg);
@@ -1067,8 +1052,8 @@ button {
   align-items: center;
   display: flex;
   gap: 12px;
-  justify-content: space-between;
-  margin-bottom: 10px;
+  justify-content: center;
+  margin-bottom: 8px;
 }
 
 .room-panel-eyebrow,
@@ -1084,9 +1069,27 @@ button {
   border: 1px solid var(--border-color);
   border-radius: 8px;
   font-size: 11px;
+  line-height: 1.1;
   margin: 0;
-  padding: 6px 8px;
+  min-height: 32px;
+  padding: 7px 9px;
   transform: none;
+}
+
+.copy-room-button:hover,
+.copy-room-button:focus {
+  background-color: var(--control-hover-bg);
+}
+
+.copy-room-button:disabled,
+.game-timer-panel select:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.copy-room-button:disabled:hover,
+.copy-room-button:disabled:focus {
+  background-color: var(--control-bg);
 }
 
 .copy-room-button:focus-visible,
@@ -1103,7 +1106,7 @@ button {
   display: flex;
   gap: 8px;
   justify-content: center;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   color: var(--control-muted);
 }
 
@@ -1120,12 +1123,80 @@ button {
 
 .game-flow-panel {
   border-top: 1px solid rgba(255, 255, 255, 0.12);
-  margin-top: 12px;
+  margin-top: 10px;
   padding-top: 12px;
 }
 
+.room-panel-actions {
+  display: grid;
+  gap: 9px;
+  margin-top: 12px;
+}
+
+.room-primary-actions,
+.room-secondary-actions,
+.room-exit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.room-primary-actions > *,
+.room-secondary-actions > * {
+  flex: 1 1 132px;
+}
+
+.room-exit-actions {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  justify-content: flex-end;
+  padding-top: 9px;
+}
+
+.room-panel-primary-button {
+  background-color: var(--accent-color);
+  border-color: transparent;
+  color: var(--accent-text);
+}
+
+.room-panel-primary-button:hover,
+.room-panel-primary-button:focus {
+  background-color: #ffe252;
+  color: var(--accent-text);
+}
+
+.room-panel-secondary-button,
+.room-panel-exit-button {
+  border-color: rgba(255, 255, 255, 0.18);
+  color: var(--control-muted);
+}
+
+.room-panel-danger-button {
+  background-color: var(--danger-bg);
+  border-color: var(--danger-color);
+  color: #ffd9d5;
+}
+
+.room-panel-danger-button:hover,
+.room-panel-danger-button:focus {
+  background-color: rgba(255, 122, 111, 0.18);
+  border-color: #ff9b93;
+  color: #fff1ef;
+}
+
+.room-panel-primary-button:disabled:hover,
+.room-panel-primary-button:disabled:focus {
+  background-color: var(--accent-color);
+  color: var(--accent-text);
+}
+
+.room-panel-danger-button:disabled:hover,
+.room-panel-danger-button:disabled:focus {
+  background-color: var(--danger-bg);
+  color: #ffd9d5;
+}
+
 .copy-results-button {
-  margin-top: 10px;
+  margin-top: 0;
 }
 
 .game-flow-eyebrow,
@@ -1158,7 +1229,7 @@ button {
   display: grid;
   gap: 6px;
   grid-template-columns: auto 1fr auto;
-  margin-top: 10px;
+  margin-top: 0;
 }
 
 .game-timer-panel label {
@@ -1188,7 +1259,6 @@ button {
 
 .game-flow-button {
   display: none;
-  margin-top: 10px;
   width: 100%;
 }
 
@@ -1262,7 +1332,7 @@ button {
   }
 
   .title-image {
-    height: 62px;
+    height: auto;
     width: 228px;
   }
 
@@ -1305,7 +1375,7 @@ button {
   }
 
   .title-image {
-    height: 54px;
+    height: auto;
     width: 188px;
   }
 
@@ -1423,9 +1493,7 @@ button {
     display: block;
     margin: 0 auto 22px;
     width: min(240px, 70vw);
-    height: 72px;
-    object-fit: cover;
-    object-position: center 44%;
+    height: auto;
   }
 
   .mobile-info-kicker {

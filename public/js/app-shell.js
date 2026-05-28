@@ -24,19 +24,27 @@ async function loadAppConfig() {
     return {
       appVersion: "",
       enableDebugPanel: false,
+      showVersionLabel: false,
       storageMode: "memory",
     };
   }
 }
 
 function initAppFooter(appConfig = {}) {
+  const appFooter = document.getElementById("appFooter");
   const appVersionText = document.getElementById("appVersionText");
 
-  if (!appVersionText || !appConfig.appVersion) {
+  if (!appFooter || !appVersionText) {
+    return;
+  }
+
+  if (!appConfig.showVersionLabel || !appConfig.appVersion) {
+    appFooter.hidden = true;
     return;
   }
 
   appVersionText.textContent = `v${appConfig.appVersion}`;
+  appFooter.hidden = false;
 }
 
 function initDebugPanel(appConfig = {}) {

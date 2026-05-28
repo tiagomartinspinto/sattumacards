@@ -66,6 +66,7 @@ function createHttpApp({ config, getDebugState, getRoomCount, logger }) {
     response.json({
       appVersion: config.APP_VERSION,
       enableDebugPanel: Boolean(config.ENABLE_DEBUG_PANEL),
+      showVersionLabel: !config.IS_PRODUCTION,
       storageMode: config.ROOM_STORAGE_MODE,
     });
   });

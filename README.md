@@ -2,7 +2,7 @@
 
 Sattuma is a collaborative bilingual card game for imagining, discussing, and reshaping teaching situations. The digital version lets several participants join the same room, share one synchronized table, and build scenarios together in local, remote, or hybrid settings.
 
-The current app version is surfaced in the UI footer and tracked in `CHANGELOG.md`. Release tags should follow the same semantic version number format, for example `v1.1.0`.
+The current app version is available in development UI and tracked in `CHANGELOG.md`. Release tags should follow the same semantic version number format, for example `v1.1.0`.
 
 ## What the app does
 
@@ -60,7 +60,7 @@ http://localhost:4000
 - Each browser session joins one room.
 - Players in the same room share the same synchronized table state.
 - The first player to join becomes the host.
-- Only the host can reset the room, deal a random situation, change the timer, or start a replacement round.
+- Only the host can reset the room, deal a random scenario, change the timer, or start a replacement round.
 - Reset and random-deal actions require confirmation before they replace the shared table.
 - An opaque browser session token helps the same browser reconnect to its earlier player slot after a refresh or short disconnect.
 - If the host disconnects, host control temporarily moves to the next connected player so the room can continue.
