@@ -72,3 +72,5 @@ dist
 *.tgz
 .yarn-integrity
 .vscode-test
+.DS_Store
+**/.DS_Store
