@@ -1,12 +1,85 @@
-/* global document */
+/* global document, window */
 
 const { expect, test } = require("@playwright/test");
 
-// The landing controls are wired up after the app config and translations load,
-// which can finish after the page load event; body.is-landing marks that point.
+async function expectAppReady(page) {
+  await expect(page.locator("body")).toHaveAttribute("data-app-state", "ready");
+}
+
 async function openLanding(page) {
   await page.goto("/?lang=en");
-  await expect(page.locator("body")).toHaveClass(/is-landing/);
+  await expectAppReady(page);
+}
+
+// Holds every request matching `pattern` until release() is called, so a test can
+// act inside the startup window deterministically instead of racing it.
+async function holdStartupRequest(page, pattern) {
+  let release;
+  let markRequested;
+  const released = new Promise((resolve) => {
+    release = resolve;
+  });
+  const requested = new Promise((resolve) => {
+    markRequested = resolve;
+  });
+
+  await page.route(pattern, async (route) => {
+    markRequested();
+    await released;
+    await route.continue();
+  });
+
+  return { release, requested };
+}
+
+// Records which elements actually receive clicks and form submissions, so a test
+// can tell "the control ignored the input" apart from "the input never reached it".
+function recordUserEvents(page) {
+  return page.evaluate(() => {
+    window.receivedEvents = [];
+    ["click", "submit"].forEach((type) => {
+      document.addEventListener(
+        type,
+        (event) => window.receivedEvents.push(`${type}:${event.target.id || ""}`),
+        true
+      );
+    });
+  });
+}
+
+async function clickCenter(page, selector) {
+  const box = await page.locator(selector).boundingBox();
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+}
+
+function activeElementInfo(page) {
+  return page.evaluate(() => ({
+    tag: document.activeElement.tagName,
+    insideApp: Boolean(document.activeElement.closest("[data-inert-until-ready]")),
+  }));
+}
+
+async function expectStartupWindowIsInert(page) {
+  await expect(page.locator("#landingScreen")).toBeVisible();
+  await expect(page.locator("body")).toHaveAttribute("data-app-state", "loading");
+  await expect(page.locator("body")).toHaveAttribute("aria-busy", "true");
+
+  await recordUserEvents(page);
+  await clickCenter(page, "#createRoomBtn");
+  await clickCenter(page, ".menu-icon");
+  await clickCenter(page, "#languageSelector");
+  await clickCenter(page, "#joinRoomCode");
+  await page.keyboard.type("ABC123");
+  await page.keyboard.press("Enter");
+  for (let index = 0; index < 4; index += 1) {
+    await page.keyboard.press("Tab");
+  }
+
+  const received = await page.evaluate(() => window.receivedEvents);
+  expect(received.filter((entry) => entry !== "click:")).toEqual([]);
+  expect(await activeElementInfo(page)).toEqual({ tag: "BODY", insideApp: false });
+  await expect(page.locator("#joinRoomCode")).toHaveValue("");
+  await expect(page.locator("#menuContent")).toBeHidden();
 }
 
 async function createRoom(page) {
@@ -25,6 +98,75 @@ async function placeAndFlipSituationCard(page) {
 function acceptNextDialog(page) {
   page.once("dialog", (dialog) => dialog.accept());
 }
+
+for (const heldRequest of ["**/app-config", "**/i18n/en.json"]) {
+  test(`startup held on ${heldRequest}: early input is refused, first real use works`, async ({
+    browser,
+  }) => {
+    const host = await (await browser.newContext()).newPage();
+    const hostStartup = await holdStartupRequest(host, heldRequest);
+    await host.goto("/?lang=en");
+    await hostStartup.requested;
+
+    await expectStartupWindowIsInert(host);
+    await expect(host).not.toHaveURL(/[?&](create|room)=/);
+
+    hostStartup.release();
+    await expectAppReady(host);
+    await expect(host.locator("body")).not.toHaveAttribute("aria-busy", /.*/);
+    await host.keyboard.press("Tab");
+    await expect(host.locator(".menu-icon")).toBeFocused();
+
+    await host.locator("#createRoomBtn").click();
+    await expect(host.locator("#gameBoardShell")).toBeVisible();
+    await expect(host.locator("#roomCodeDisplay")).not.toHaveText("...");
+    const roomCode = (await host.locator("#roomCodeDisplay").textContent()).trim();
+
+    const guest = await (await browser.newContext()).newPage();
+    const guestStartup = await holdStartupRequest(guest, heldRequest);
+    await guest.goto("/?lang=en");
+    await guestStartup.requested;
+
+    await expectStartupWindowIsInert(guest);
+
+    guestStartup.release();
+    await expectAppReady(guest);
+    await expect(guest.locator("#joinRoomCode")).toHaveValue("");
+    await guest.locator("#joinRoomCode").fill(roomCode);
+    await guest.getByRole("button", { name: "Join room" }).click();
+    await expect(guest.locator("#roomCodeDisplay")).toHaveText(roomCode);
+
+    await host.context().close();
+    await guest.context().close();
+  });
+}
+
+test("auto-start link keeps the page inert until the board is wired", async ({
+  page,
+}) => {
+  const startup = await holdStartupRequest(page, "**/app-config");
+  await page.goto("/?create=1&lang=en");
+  await startup.requested;
+
+  await expect(page.locator("#gameBoardShell")).toBeHidden();
+  await expectStartupWindowIsInert(page);
+
+  startup.release();
+  await expectAppReady(page);
+  await expect(page.locator("#gameBoardShell")).toBeVisible();
+  await expect(page.locator("#roomCodeDisplay")).not.toHaveText("...");
+  await page.locator("#copyRoomBtn").focus();
+  await expect(page.locator("#copyRoomBtn")).toBeFocused();
+});
+
+test("an unusable app config still lets the app become ready", async ({ page }) => {
+  await page.route("**/app-config", (route) =>
+    route.fulfill({ contentType: "application/json", body: "{not json" })
+  );
+  await openLanding(page);
+  await page.locator("#createRoomBtn").click();
+  await expect(page.locator("#gameBoardShell")).toBeVisible();
+});
 
 test("landing screen logo is visually dominant before the room starts", async ({
   page,

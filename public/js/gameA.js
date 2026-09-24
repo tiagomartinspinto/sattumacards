@@ -59,6 +59,18 @@ function showGameBoard() {
   document.getElementById("gameBoardShell")?.removeAttribute("hidden");
 }
 
+// index.html ships the interactive regions inert (and the body aria-busy) because
+// their behaviour is only attached here, after the app config and translations
+// load. Releasing them in one place means an early click or key press is never
+// accepted by a control that cannot act on it yet.
+function markAppReady() {
+  document.querySelectorAll("[data-inert-until-ready]").forEach((region) => {
+    region.inert = false;
+  });
+  document.body.removeAttribute("aria-busy");
+  document.body.dataset.appState = "ready";
+}
+
 function normalizeRoomCode(roomCode) {
   return String(roomCode || "")
     .replace(/[^a-z0-9]/gi, "")
@@ -138,11 +150,16 @@ async function initGame() {
   const responsive = initResponsive(i18n);
   initLandingActions(i18n);
 
-  if (!shouldAutoStart()) {
+  if (shouldAutoStart()) {
+    startRoomSession(i18n, responsive);
+  } else {
     showLandingScreen({ prefillRoomCode: getRoomFromUrl() });
-    return;
   }
 
+  markAppReady();
+}
+
+function startRoomSession(i18n, responsive) {
   showGameBoard();
 
   const socket = createSocket();

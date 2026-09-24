@@ -18,7 +18,8 @@ async function loadAppConfig() {
       throw new Error(`Unexpected config response: ${response.status}`);
     }
 
-    return response.json();
+    // Awaited so a malformed body also falls back instead of halting startup.
+    return await response.json();
   } catch (error) {
     console.error("Failed to load app config", error);
     return {

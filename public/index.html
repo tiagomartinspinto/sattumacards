@@ -8,8 +8,10 @@
     <link rel="stylesheet" href="gameA.css" />
   </head>
 
-  <body>
-    <div class="burger-menu">
+  <!-- The interactive regions start inert until gameA.js has wired them up;
+       markAppReady() releases them and sets data-app-state="ready". -->
+  <body data-app-state="loading" aria-busy="true">
+    <div class="burger-menu" inert data-inert-until-ready>
       <div
         class="menu-icon"
         role="button"
@@ -53,7 +55,7 @@
       </div>
     </div>
 
-    <div class="language-switcher" aria-label="Language">
+    <div class="language-switcher" aria-label="Language" inert data-inert-until-ready>
       <label for="languageSelector" class="sr-only" data-i18n="languageLabel"
         >Kieli</label
       >
@@ -137,7 +139,13 @@
       </div>
     </div>
 
-    <section id="landingScreen" class="landing-screen" aria-labelledby="landingTitle">
+    <section
+      id="landingScreen"
+      class="landing-screen"
+      aria-labelledby="landingTitle"
+      inert
+      data-inert-until-ready
+    >
       <img src="./imgs/sattuma-wordmark.png" alt="Sattuma" class="landing-logo" />
       <h1 id="landingTitle" data-i18n="landingTitle">Luo huone tai liity mukaan</h1>
       <p class="landing-intro" data-i18n="landingIntro">
@@ -192,6 +200,8 @@
       aria-label="Sattuma-pelipöytä"
       data-i18n-aria-label="boardLabel"
       hidden
+      inert
+      data-inert-until-ready
     >
       <div class="play-area">
         <div class="title">

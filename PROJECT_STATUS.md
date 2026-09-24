@@ -7,8 +7,23 @@ controls, a six-deck table, a mobile observer view, and production mode with
 debug/version chrome hidden. `npm run check` passes (lint, format, module/deck/smoke
 checks, multiplayer tests, and Playwright e2e).
 
-This checkout is an experimental design pass for comparison against production. It is
-local only and has not been committed or pushed.
+## App readiness
+
+`index.html` renders the landing (and hides the board) before any JavaScript runs, but
+the controls only work once `initGame` in `public/js/gameA.js` has loaded the app config
+and translations and attached its handlers. Until then the interactive regions carry
+`inert` and `data-inert-until-ready`, and the body has `aria-busy="true"` and
+`data-app-state="loading"`. `markAppReady()` is the single place that releases them and
+sets `data-app-state="ready"`, after both the landing and the auto-start (`?create=1`,
+`?room=`) paths are wired. Early clicks, typing and Tab presses therefore cannot reach a
+control that would ignore them. A failed or malformed `/app-config` still falls back to
+defaults and reaches ready.
+
+The e2e tests wait for `data-app-state="ready"`. Startup regression tests hold
+`/app-config` or the translation file with route interception and check that clicks,
+typing, Enter and Tab reach no control until release, then that the first real
+Create/Join works. There is also an auto-start variant and a malformed-config fallback
+test.
 
 ## Interface principles
 
@@ -39,20 +54,10 @@ local only and has not been committed or pushed.
 Heights of 760px or less also use medium cards. Checked from 980 to 1920px: no
 horizontal overflow, no overlap between the panel and the table, and no clipped controls.
 
-## Follow-up issues (not addressed in this pass)
-
-1. **First-click startup race.** The landing and menu handlers attach only after the
-   app config and translations load (`initGame` in `public/js/gameA.js`). That can
-   finish after the page `load` event, so a very early click or key press does nothing.
-   The e2e tests wait for `body.is-landing`, which masks the race in tests but does not
-   fix it for users. Possible fix: attach handlers before the awaits, or disable the
-   controls until the app is ready.
-
 ## Remaining manual visual checks
 
-1. Compare this checkout and production side by side on a real projector (1280x720 and
-   1920x1080) with host and guest windows.
-2. Drag and drop and card flips at 1000–1199px with medium cards beside the panel.
+1. Real projector at 1280x720 and 1920x1080 with host and guest windows.
+2. Drag and drop and card flips at 1000–1199px on real laptop hardware.
 3. Each table theme on the actual projector, including the dark-ink board wordmark.
 4. Screen-reader pass over the room panel. The phase is announced with a hidden
    "Round" label, and the current player is marked with `aria-current`.
@@ -63,3 +68,6 @@ horizontal overflow, no overlap between the panel and the table, and no clipped 
   yellow file's alpha and maps its tone onto `#1e272e` ink. Regenerate both if the
   original changes.
 - Multiplayer room state stays in memory unless optional persistence is enabled.
+- If a translation file fails to load, `i18n.init` throws and the app never becomes
+  ready. The controls then stay inert instead of looking usable but doing nothing.
+  Translation loading has no fallback yet.
