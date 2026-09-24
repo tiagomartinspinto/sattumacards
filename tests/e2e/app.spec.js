@@ -168,6 +168,170 @@ test("an unusable app config still lets the app become ready", async ({ page }) 
   await expect(page.locator("#gameBoardShell")).toBeVisible();
 });
 
+// Collects uncaught errors (including unhandled promise rejections) and console
+// errors, so fallback tests can assert failures were logged but never thrown.
+function watchPageErrors(page) {
+  const pageErrors = [];
+  const consoleErrors = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+  page.on("console", (message) => {
+    if (message.type() === "error") {
+      consoleErrors.push(message.text());
+    }
+  });
+  return { pageErrors, consoleErrors };
+}
+
+function failRequest(page, pattern, { status = 500, body = "" } = {}) {
+  return page.route(pattern, (route) =>
+    route.fulfill({ status, contentType: "application/json", body })
+  );
+}
+
+const RAW_LANDING_KEYS =
+  /\b(landingTitle|landingIntro|createRoomButton|joinRoomLabel|joinRoomButton|joinRoomPlaceholder|landingNote|languageSelector|menuOpen)\b/;
+
+async function expectLandingInLanguage(page, language) {
+  await expectAppReady(page);
+  await expect(page.locator("body")).not.toHaveAttribute("aria-busy", /.*/);
+  await expect(page.locator("#landingScreen")).not.toHaveAttribute("inert", /.*/);
+  await expect(page.locator("html")).toHaveAttribute("lang", language);
+  await expect(page.locator("#languageSelector")).toHaveValue(language);
+  await expect(page).toHaveURL(new RegExp(`[?&]lang=${language}(&|$)`));
+}
+
+async function expectNoRawLandingKeys(page) {
+  const landing = page.locator("#landingScreen");
+  await expect(landing).not.toContainText(RAW_LANDING_KEYS);
+  const attributes = await page.evaluate(() =>
+    [...document.querySelectorAll("[placeholder], [title], [aria-label]")].flatMap(
+      (element) =>
+        ["placeholder", "title", "aria-label"].map((name) => element.getAttribute(name))
+    )
+  );
+  expect(attributes.filter((value) => value && RAW_LANDING_KEYS.test(value))).toEqual([]);
+}
+
+test("a failed requested dictionary falls back to Finnish and stays usable", async ({
+  page,
+}) => {
+  const errors = watchPageErrors(page);
+  await failRequest(page, "**/i18n/en.json");
+  await page.goto("/?lang=en");
+
+  await expectLandingInLanguage(page, "fi");
+  await expect(page.locator("#landingTitle")).toHaveText("Luo huone tai liity mukaan");
+  await expect(page.locator("#createRoomBtn")).toHaveText("Luo huone");
+  await expectNoRawLandingKeys(page);
+  expect(await page.evaluate(() => localStorage.getItem("sattumaLanguage"))).toBeNull();
+  expect(errors.consoleErrors.some((text) => text.includes("en translation"))).toBe(true);
+
+  await page.locator("#createRoomBtn").click();
+  await expect(page.locator("#gameBoardShell")).toBeVisible();
+  expect(errors.pageErrors).toEqual([]);
+});
+
+test("a failed Finnish dictionary does not block a working requested language", async ({
+  page,
+}) => {
+  const errors = watchPageErrors(page);
+  await failRequest(page, "**/i18n/fi.json");
+  await page.goto("/?lang=en");
+
+  await expectLandingInLanguage(page, "en");
+  await expect(page.locator("#landingTitle")).toHaveText("Create a room or join one");
+  await expectNoRawLandingKeys(page);
+
+  await page.locator("#createRoomBtn").click();
+  await expect(page.locator("#gameBoardShell")).toBeVisible();
+  expect(errors.pageErrors).toEqual([]);
+});
+
+test("with no dictionary at all the served page text stays and the app works", async ({
+  page,
+}) => {
+  const errors = watchPageErrors(page);
+  await failRequest(page, "**/i18n/fi.json");
+  await failRequest(page, "**/i18n/en.json", { status: 200, body: "{not json" });
+  await page.goto("/?lang=en");
+
+  await expectLandingInLanguage(page, "fi");
+  await expect(page.locator("#landingTitle")).toHaveText("Luo huone tai liity mukaan");
+  await expect(page.locator("#createRoomBtn")).toHaveText("Create room");
+  await expect(page.locator("#joinRoomCode")).toHaveAttribute(
+    "placeholder",
+    "Enter room code"
+  );
+  await expect(page.locator("#languageSelector")).toHaveAttribute(
+    "aria-label",
+    "Vaihda kieltä"
+  );
+  await expectNoRawLandingKeys(page);
+
+  await page.locator("#createRoomBtn").click();
+  await expect(page.locator("#gameBoardShell")).toBeVisible();
+  await expectAppReady(page);
+  await expect(page.locator("#roomCodeDisplay")).not.toHaveText("...");
+  expect(errors.pageErrors).toEqual([]);
+});
+
+test("a failed language switch keeps the current language intact", async ({ page }) => {
+  const errors = watchPageErrors(page);
+  await page.goto("/?lang=fi");
+  await expectLandingInLanguage(page, "fi");
+
+  let englishRequests = 0;
+  await page.route("**/i18n/en.json", (route) => {
+    englishRequests += 1;
+    return route.fulfill({ status: 503, body: "" });
+  });
+  await page.locator("#languageSelector").selectOption("en");
+
+  await expect.poll(() => englishRequests).toBe(1);
+  await expectLandingInLanguage(page, "fi");
+  await expect(page.locator("#landingTitle")).toHaveText("Luo huone tai liity mukaan");
+  await expect(page.locator("#createRoomBtn")).toHaveText("Luo huone");
+  expect(await page.evaluate(() => localStorage.getItem("sattumaLanguage"))).toBe("fi");
+
+  // A failure is not cached: once English is reachable the same switch succeeds,
+  // and after that the cached dictionary is used without another request.
+  await page.unroute("**/i18n/en.json");
+  await page.locator("#languageSelector").selectOption("en");
+  await expectLandingInLanguage(page, "en");
+  await expect(page.locator("#landingTitle")).toHaveText("Create a room or join one");
+
+  englishRequests = 0;
+  await page.route("**/i18n/en.json", (route) => {
+    englishRequests += 1;
+    return route.fulfill({ status: 503, body: "" });
+  });
+  await page.locator("#languageSelector").selectOption("fi");
+  await expectLandingInLanguage(page, "fi");
+  await page.locator("#languageSelector").selectOption("en");
+  await expectLandingInLanguage(page, "en");
+  expect(englishRequests).toBe(0);
+  expect(errors.pageErrors).toEqual([]);
+});
+
+test("a missing modal page does not block the app", async ({ page }) => {
+  const errors = watchPageErrors(page);
+  await page.route("**/content/en/instructions.html", (route) =>
+    route.fulfill({ status: 404, body: "" })
+  );
+  await page.goto("/?lang=en");
+
+  await expectLandingInLanguage(page, "en");
+  await expect(page.locator("#historyContent")).not.toBeEmpty();
+  await expect(page.locator("#instructionsContent")).not.toContainText(/HTTP|Error/);
+  expect(errors.consoleErrors.some((text) => text.includes("instructions.html"))).toBe(
+    true
+  );
+
+  await page.locator("#createRoomBtn").click();
+  await expect(page.locator("#gameBoardShell")).toBeVisible();
+  expect(errors.pageErrors).toEqual([]);
+});
+
 test("landing screen logo is visually dominant before the room starts", async ({
   page,
 }) => {

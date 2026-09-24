@@ -1,5 +1,11 @@
 const SUPPORTED_LANGUAGES = ["fi", "en"];
 const DEFAULT_LANGUAGE = "fi";
+const TEXT_TARGETS = { "data-i18n": "textContent", "data-i18n-html": "innerHTML" };
+const ATTRIBUTE_TARGETS = {
+  "data-i18n-placeholder": "placeholder",
+  "data-i18n-title": "title",
+  "data-i18n-aria-label": "aria-label",
+};
 const CONTENT_FILES = {
   instructionsContent: "instructions.html",
   historyContent: "about.html",
@@ -37,47 +43,63 @@ export function createI18n() {
   const contentCache = {};
   let language = getInitialLanguage();
   let translationTargets = null;
+  const servedText = new Map();
 
+  // Every translatable value keeps the text it was served with in index.html. That
+  // markup is the last fallback, so a missing dictionary never replaces usable copy
+  // with an internal key.
   function getTranslationTargets() {
     if (!translationTargets) {
-      translationTargets = {
-        text: [...document.querySelectorAll("[data-i18n]")],
-        html: [...document.querySelectorAll("[data-i18n-html]")],
-        placeholder: [...document.querySelectorAll("[data-i18n-placeholder]")],
-        title: [...document.querySelectorAll("[data-i18n-title]")],
-        ariaLabel: [...document.querySelectorAll("[data-i18n-aria-label]")],
+      translationTargets = [];
+      const capture = (key, served, write) => {
+        translationTargets.push({ key, served, write });
+        if (served && !servedText.has(key)) {
+          servedText.set(key, served.replace(/\s+/g, " ").trim());
+        }
       };
+
+      Object.entries(TEXT_TARGETS).forEach(([dataAttribute, property]) => {
+        document.querySelectorAll(`[${dataAttribute}]`).forEach((element) => {
+          capture(element.getAttribute(dataAttribute), element[property], (value) => {
+            element[property] = value;
+          });
+        });
+      });
+
+      Object.entries(ATTRIBUTE_TARGETS).forEach(([dataAttribute, attribute]) => {
+        document.querySelectorAll(`[${dataAttribute}]`).forEach((element) => {
+          capture(
+            element.getAttribute(dataAttribute),
+            element.getAttribute(attribute),
+            (value) => element.setAttribute(attribute, value)
+          );
+        });
+      });
     }
 
     return translationTargets;
   }
 
+  function lookup(key) {
+    return dictionaries[language]?.[key] || dictionaries[DEFAULT_LANGUAGE]?.[key];
+  }
+
+  // Callers such as room.js rely on an unknown key coming back unchanged, so the key
+  // stays the final fallback after the dictionaries and the served page text.
   function t(key) {
-    return dictionaries[language]?.[key] || dictionaries[DEFAULT_LANGUAGE]?.[key] || key;
+    getTranslationTargets();
+    return lookup(key) || servedText.get(key) || key;
   }
 
   function applyTranslations() {
-    const targets = getTranslationTargets();
     document.documentElement.lang = language;
 
-    targets.text.forEach((element) => {
-      element.textContent = t(element.dataset.i18n);
-    });
+    getTranslationTargets().forEach(({ key, served, write }) => {
+      const value = lookup(key) ?? served;
 
-    targets.html.forEach((element) => {
-      element.innerHTML = t(element.dataset.i18nHtml);
-    });
-
-    targets.placeholder.forEach((element) => {
-      element.setAttribute("placeholder", t(element.dataset.i18nPlaceholder));
-    });
-
-    targets.title.forEach((element) => {
-      element.setAttribute("title", t(element.dataset.i18nTitle));
-    });
-
-    targets.ariaLabel.forEach((element) => {
-      element.setAttribute("aria-label", t(element.dataset.i18nAriaLabel));
+      if (value != null) {
+        write(value);
+      }
     });
   }
 
@@ -95,13 +117,19 @@ export function createI18n() {
         }
 
         if (!contentCache[language][fileName]) {
-          const response = await fetch(`./content/${language}/${fileName}`);
+          try {
+            const response = await fetch(`./content/${language}/${fileName}`);
 
-          if (!response.ok) {
-            throw new Error(`Could not load content file: ${fileName}`);
+            if (!response.ok) {
+              throw new Error(`HTTP ${response.status}`);
+            }
+
+            contentCache[language][fileName] = await response.text();
+          } catch (error) {
+            // Modal copy is optional: keep whatever the modal already shows.
+            console.error(`Could not load ${language} modal content ${fileName}`, error);
+            return;
           }
-
-          contentCache[language][fileName] = await response.text();
         }
 
         contentElement.innerHTML = contentCache[language][fileName];
@@ -109,21 +137,52 @@ export function createI18n() {
     );
   }
 
-  async function loadLanguage(nextLanguage) {
+  // Failures are not cached, so a later switch retries a dictionary that failed once.
+  async function getDictionary(dictionaryLanguage) {
+    if (!dictionaries[dictionaryLanguage]) {
+      try {
+        dictionaries[dictionaryLanguage] = await fetchDictionary(dictionaryLanguage);
+      } catch (error) {
+        console.error(
+          `Could not load the ${dictionaryLanguage} translation dictionary`,
+          error
+        );
+        return null;
+      }
+    }
+
+    return dictionaries[dictionaryLanguage];
+  }
+
+  // Switches only once the requested dictionary is available, so a failed load leaves
+  // the current language fully in place. Finnish is fetched alongside as the per-key
+  // fallback but is never a prerequisite. Returns whether the switch happened.
+  async function loadLanguage(nextLanguage, { remember = true } = {}) {
     if (!SUPPORTED_LANGUAGES.includes(nextLanguage)) {
-      return;
+      return false;
     }
 
-    if (!dictionaries[DEFAULT_LANGUAGE]) {
-      dictionaries[DEFAULT_LANGUAGE] = await fetchDictionary(DEFAULT_LANGUAGE);
+    const [dictionary] = await Promise.all([
+      getDictionary(nextLanguage),
+      nextLanguage === DEFAULT_LANGUAGE ? null : getDictionary(DEFAULT_LANGUAGE),
+    ]);
+
+    if (!dictionary) {
+      return false;
     }
 
-    if (!dictionaries[nextLanguage]) {
-      dictionaries[nextLanguage] = await fetchDictionary(nextLanguage);
-    }
+    activateLanguage(nextLanguage, { remember });
+    await loadModalContent();
+    listeners.forEach((listener) => listener(language));
+    return true;
+  }
 
+  function activateLanguage(nextLanguage, { remember }) {
     language = nextLanguage;
-    localStorage.setItem("sattumaLanguage", language);
+
+    if (remember) {
+      localStorage.setItem("sattumaLanguage", language);
+    }
 
     const url = new URL(window.location.href);
     url.searchParams.set("lang", language);
@@ -135,8 +194,6 @@ export function createI18n() {
     }
 
     applyTranslations();
-    await loadModalContent();
-    listeners.forEach((listener) => listener(language));
   }
 
   function onChange(listener) {
@@ -144,13 +201,27 @@ export function createI18n() {
     return () => listeners.delete(listener);
   }
 
+  // Always resolves, so the app becomes ready whichever dictionaries load: the
+  // requested language, else Finnish, else the text served in index.html. A fallback
+  // does not overwrite the visitor's saved language preference.
   async function init() {
-    await loadLanguage(language);
+    getTranslationTargets();
+    const requestedLanguage = language;
+    const loaded =
+      (await loadLanguage(requestedLanguage)) ||
+      (requestedLanguage !== DEFAULT_LANGUAGE &&
+        (await loadLanguage(DEFAULT_LANGUAGE, { remember: false })));
+
+    if (!loaded) {
+      activateLanguage(DEFAULT_LANGUAGE, { remember: false });
+    }
 
     const languageSelector = document.getElementById("languageSelector");
     if (languageSelector) {
-      languageSelector.addEventListener("change", () => {
-        loadLanguage(languageSelector.value);
+      languageSelector.addEventListener("change", async () => {
+        if (!(await loadLanguage(languageSelector.value))) {
+          languageSelector.value = language;
+        }
       });
     }
   }

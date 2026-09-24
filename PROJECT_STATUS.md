@@ -19,11 +19,24 @@ sets `data-app-state="ready"`, after both the landing and the auto-start (`?crea
 control that would ignore them. A failed or malformed `/app-config` still falls back to
 defaults and reaches ready.
 
-The e2e tests wait for `data-app-state="ready"`. Startup regression tests hold
-`/app-config` or the translation file with route interception and check that clicks,
-typing, Enter and Tab reach no control until release, then that the first real
-Create/Join works. There is also an auto-start variant and a malformed-config fallback
-test.
+Translation loading cannot block readiness. `public/js/i18n.js` uses the requested
+dictionary if it loads, otherwise Finnish, otherwise the text served in `index.html`.
+Finnish is only a per-key fallback, never a prerequisite. Every translatable element
+keeps its served text as the last fallback, so a missing dictionary never writes a raw
+key into the page. A startup fallback does not overwrite the saved language
+preference. A failed language switch leaves the current language, selector and URL
+untouched, and a failed dictionary is retried on the next switch. Missing modal pages
+are logged and skipped. With no dictionary at all, strings generated only in code
+(phase labels, notices) show their keys, because they have no served text.
+
+The e2e tests wait for `data-app-state="ready"`. Regression tests cover:
+
+- held `/app-config` or translation requests: clicks, typing, Enter and Tab reach no
+  control until release, then the first real Create/Join works (also for `?create=1`)
+- a malformed `/app-config`
+- a failed requested dictionary, a failed Finnish dictionary, both failing, a failed
+  switch after startup, and a missing modal page, each checking readiness, language,
+  selector, URL, served text and that no page errors occur
 
 ## Interface principles
 
@@ -68,6 +81,3 @@ horizontal overflow, no overlap between the panel and the table, and no clipped 
   yellow file's alpha and maps its tone onto `#1e272e` ink. Regenerate both if the
   original changes.
 - Multiplayer room state stays in memory unless optional persistence is enabled.
-- If a translation file fails to load, `i18n.init` throws and the app never becomes
-  ready. The controls then stay inert instead of looking usable but doing nothing.
-  Translation loading has no fallback yet.
