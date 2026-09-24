@@ -2,8 +2,15 @@
 
 const { expect, test } = require("@playwright/test");
 
-async function createRoom(page) {
+// The landing controls are wired up after the app config and translations load,
+// which can finish after the page load event; body.is-landing marks that point.
+async function openLanding(page) {
   await page.goto("/?lang=en");
+  await expect(page.locator("body")).toHaveClass(/is-landing/);
+}
+
+async function createRoom(page) {
+  await openLanding(page);
   await page.getByRole("button", { name: "Create room" }).click();
   await expect(page.locator("#gameBoardShell")).toBeVisible();
   await expect(page.locator("#roomCodeDisplay")).not.toHaveText("...");
@@ -22,7 +29,7 @@ function acceptNextDialog(page) {
 test("landing screen logo is visually dominant before the room starts", async ({
   page,
 }) => {
-  await page.goto("/?lang=en");
+  await openLanding(page);
 
   const landingLogo = page.locator(".landing-logo");
   await expect(landingLogo).toBeVisible();
@@ -46,6 +53,45 @@ test("board logo stays clear of the lifted deck cards on desktop", async ({ page
   expect(deckTop - titleBottom).toBeGreaterThanOrEqual(8);
 });
 
+test("current phase and turn stay in view on a projector-sized screen", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await createRoom(page);
+
+  const turnHelpBox = await page.locator("#gameTurnHelp").boundingBox();
+
+  await expect(page.locator("#gamePhaseLabel")).toHaveText("Setting the table");
+  expect(turnHelpBox).toBeTruthy();
+  expect(turnHelpBox.y + turnHelpBox.height).toBeLessThanOrEqual(720);
+});
+
+test("board wordmark switches to dark ink on light table themes", async ({ page }) => {
+  await createRoom(page);
+
+  const boardWordmark = page.locator(".title-image");
+  const landingWordmark = page.locator(".landing-logo");
+  const themeSelector = page.locator("#backgroundColorSelector");
+
+  await expect(boardWordmark).toHaveAttribute("src", "./imgs/sattuma-wordmark.png");
+
+  for (const theme of ["sage", "mist", "sky", "rose", "dawn"]) {
+    await themeSelector.selectOption(theme);
+    await expect(boardWordmark).toHaveAttribute(
+      "src",
+      "./imgs/sattuma-wordmark-dark.png"
+    );
+  }
+
+  await themeSelector.selectOption("default");
+  await expect(boardWordmark).toHaveAttribute("src", "./imgs/sattuma-wordmark.png");
+
+  await themeSelector.selectOption("sky");
+  await page.reload();
+  await expect(boardWordmark).toHaveAttribute("src", "./imgs/sattuma-wordmark-dark.png");
+  await expect(landingWordmark).toHaveAttribute("src", "./imgs/sattuma-wordmark.png");
+});
+
 test("host can create a room and a guest can join and follow card movement", async ({
   browser,
 }) => {
@@ -59,7 +105,7 @@ test("host can create a room and a guest can join and follow card movement", asy
   const guestPage = await guestContext.newPage();
 
   const roomCode = await createRoom(hostPage);
-  await guestPage.goto("/?lang=en");
+  await openLanding(guestPage);
   await guestPage.getByLabel("Room code").fill(roomCode.trim());
   await guestPage.getByRole("button", { name: "Join room" }).click();
 
@@ -103,7 +149,7 @@ test("host can close the room for everyone and both pages return to the landing 
   const guestPage = await guestContext.newPage();
 
   const roomCode = await createRoom(hostPage);
-  await guestPage.goto("/?lang=en");
+  await openLanding(guestPage);
   await guestPage.getByLabel("Room code").fill(roomCode);
   await guestPage.getByRole("button", { name: "Join room" }).click();
 
@@ -137,7 +183,7 @@ test("host can close the room for everyone and both pages return to the landing 
 test("modal keyboard flow traps focus and Escape returns focus to the trigger", async ({
   page,
 }) => {
-  await page.goto("/?lang=en");
+  await openLanding(page);
 
   const menuButton = page.locator(".menu-icon");
   const modalTrigger = page.locator('[data-modal-target="instructionsModal"]');

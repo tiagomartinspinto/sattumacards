@@ -9,20 +9,6 @@
   </head>
 
   <body>
-    <div class="language-switcher" aria-label="Language">
-      <label for="languageSelector" data-i18n="languageLabel">Kieli</label>
-      <select
-        id="languageSelector"
-        title="Vaihda kieltä"
-        aria-label="Vaihda kieltä"
-        data-i18n-title="languageSelector"
-        data-i18n-aria-label="languageSelector"
-      >
-        <option value="fi">Suomi</option>
-        <option value="en">English</option>
-      </select>
-    </div>
-
     <div class="burger-menu">
       <div
         class="menu-icon"
@@ -65,6 +51,22 @@
           </li>
         </ul>
       </div>
+    </div>
+
+    <div class="language-switcher" aria-label="Language">
+      <label for="languageSelector" class="sr-only" data-i18n="languageLabel"
+        >Kieli</label
+      >
+      <select
+        id="languageSelector"
+        title="Vaihda kieltä"
+        aria-label="Vaihda kieltä"
+        data-i18n-title="languageSelector"
+        data-i18n-aria-label="languageSelector"
+      >
+        <option value="fi">Suomi</option>
+        <option value="en">English</option>
+      </select>
     </div>
     <div id="instructionsModal" class="modal" aria-hidden="true">
       <div
@@ -137,14 +139,13 @@
 
     <section id="landingScreen" class="landing-screen" aria-labelledby="landingTitle">
       <img src="./imgs/sattuma-wordmark.png" alt="Sattuma" class="landing-logo" />
-      <p class="landing-kicker" data-i18n="landingKicker">Yhteinen korttipöytä</p>
       <h1 id="landingTitle" data-i18n="landingTitle">Luo huone tai liity mukaan</h1>
       <p class="landing-intro" data-i18n="landingIntro">
         Rakentakaa tilanne yhdessä saman pöydän äärellä.
       </p>
       <div class="landing-actions">
         <button
-          class="button-arounder landing-primary-button"
+          class="button-primary landing-primary-button"
           id="createRoomBtn"
           type="button"
           data-i18n="createRoomButton"
@@ -169,7 +170,7 @@
               placeholder="Enter room code"
             />
             <button
-              class="button-arounder landing-secondary-button"
+              class="button-secondary landing-secondary-button"
               type="submit"
               data-i18n="joinRoomButton"
               data-i18n-title="joinRoomButton"
@@ -268,7 +269,7 @@
         <div class="button-container">
           <!-- Random situation button with the Sattuma logo inside -->
           <button
-            class="button-arounder quick-deal-logo-button"
+            class="toolbar-button quick-deal-logo-button"
             id="quickDealBtn"
             type="button"
             title="Jaa satunnainen tilanne"
@@ -281,7 +282,7 @@
 
           <!-- Reset Button -->
           <button
-            class="button-arounder icon-button shuffle-button"
+            class="toolbar-button shuffle-button"
             id="resetBtn"
             type="button"
             title="Aloita alusta"
@@ -316,108 +317,101 @@
       <!-- Player List and Game Console Container -->
       <div class="info-console-container">
         <div class="game-info-container">
-          <div class="room-panel-header">
-            <span class="room-panel-eyebrow" data-i18n="roomPanel">Huone</span>
-          </div>
           <div class="room-code-row">
-            <span data-i18n="roomCodeLabel">Koodi:</span>
+            <span class="room-code-label" data-i18n="roomPanel">Huone</span>
             <strong id="roomCodeDisplay">...</strong>
+            <button
+              class="room-panel-button room-panel-quiet-button"
+              id="copyRoomBtn"
+              type="button"
+              title="Kopioi huoneen koodi"
+              aria-label="Kopioi huoneen koodi"
+              data-i18n-title="copyRoom"
+              data-i18n-aria-label="copyRoom"
+              data-i18n="copyRoomShort"
+            >
+              Kopioi linkki
+            </button>
           </div>
           <div id="roomCodeScreenReader" class="sr-only"></div>
+
           <div class="game-flow-panel">
-            <div class="game-flow-eyebrow" data-i18n="gameAStatus">Kierros</div>
+            <span class="sr-only" data-i18n="gameAStatus">Kierros</span>
             <strong id="gamePhaseLabel" class="game-phase-label"></strong>
             <p id="gameTurnHelp" class="game-turn-help"></p>
-            <div class="room-panel-actions">
-              <div class="room-primary-actions" aria-label="Primary room actions">
-                <button
-                  class="copy-room-button room-panel-action-button room-panel-primary-button"
-                  id="copyRoomBtn"
-                  type="button"
-                  title="Kopioi huoneen koodi"
-                  aria-label="Kopioi huoneen koodi"
-                  data-i18n-title="copyRoom"
-                  data-i18n-aria-label="copyRoom"
-                  data-i18n="copyRoomShort"
-                >
-                  Kopioi linkki
-                </button>
-                <button
-                  class="copy-room-button game-flow-button room-panel-primary-button"
-                  id="startReplacementBtn"
-                  type="button"
-                  data-i18n="startReplacement"
-                  data-i18n-title="startReplacement"
-                  data-i18n-aria-label="startReplacement"
-                >
-                  Aloita vaihtokierros
-                </button>
-              </div>
+            <button
+              class="room-panel-button button-primary game-flow-button"
+              id="startReplacementBtn"
+              type="button"
+              data-i18n="startReplacement"
+              data-i18n-title="startReplacement"
+              data-i18n-aria-label="startReplacement"
+            >
+              Aloita vaihtokierros
+            </button>
 
-              <div class="room-secondary-actions" aria-label="Secondary room actions">
-                <div class="game-timer-panel">
-                  <label for="roundTimerSelector" data-i18n="timerLabel">Ajastin</label>
-                  <select
-                    id="roundTimerSelector"
-                    title="Valitse keskustelun ajastin"
-                    aria-label="Valitse keskustelun ajastin"
-                    data-i18n-title="timerSelector"
-                    data-i18n-aria-label="timerSelector"
-                  >
-                    <option value="0" data-i18n="timerOff">Pois</option>
-                    <option value="60" data-i18n="timerOneMinute">1 min</option>
-                    <option value="120" data-i18n="timerTwoMinutes">2 min</option>
-                    <option value="180" data-i18n="timerThreeMinutes">3 min</option>
-                    <option value="300" data-i18n="timerFiveMinutes">5 min</option>
-                  </select>
-                  <strong id="roundTimerDisplay" class="round-timer-display"
-                    >--:--</strong
-                  >
-                </div>
-                <button
-                  class="copy-room-button copy-results-button room-panel-secondary-button"
-                  id="copyResultsBtn"
-                  type="button"
-                  disabled
-                  data-i18n="copyResults"
-                  data-i18n-title="copyResults"
-                  data-i18n-aria-label="copyResults"
+            <div class="room-secondary-actions">
+              <div class="game-timer-panel">
+                <label for="roundTimerSelector" data-i18n="timerLabel">Ajastin</label>
+                <select
+                  id="roundTimerSelector"
+                  title="Valitse keskustelun ajastin"
+                  aria-label="Valitse keskustelun ajastin"
+                  data-i18n-title="timerSelector"
+                  data-i18n-aria-label="timerSelector"
                 >
-                  Kopioi tilanne
-                </button>
+                  <option value="0" data-i18n="timerOff">Pois</option>
+                  <option value="60" data-i18n="timerOneMinute">1 min</option>
+                  <option value="120" data-i18n="timerTwoMinutes">2 min</option>
+                  <option value="180" data-i18n="timerThreeMinutes">3 min</option>
+                  <option value="300" data-i18n="timerFiveMinutes">5 min</option>
+                </select>
+                <strong id="roundTimerDisplay" class="round-timer-display">--:--</strong>
               </div>
-
-              <div class="room-exit-actions" aria-label="Exit room actions">
-                <button
-                  class="copy-room-button room-panel-action-button room-panel-exit-button"
-                  id="leaveRoomBtn"
-                  type="button"
-                  title="Poistu huoneesta"
-                  aria-label="Poistu huoneesta"
-                  data-i18n-title="leaveRoom"
-                  data-i18n-aria-label="leaveRoom"
-                  data-i18n="leaveRoomShort"
-                >
-                  Poistu
-                </button>
-                <button
-                  class="copy-room-button room-panel-action-button room-panel-danger-button"
-                  id="closeRoomBtn"
-                  type="button"
-                  title="Sulje huone"
-                  aria-label="Sulje huone"
-                  data-i18n-title="closeRoom"
-                  data-i18n-aria-label="closeRoom"
-                  data-i18n="closeRoomShort"
-                  hidden
-                >
-                  Sulje huone
-                </button>
-              </div>
+              <button
+                class="room-panel-button room-panel-quiet-button"
+                id="copyResultsBtn"
+                type="button"
+                disabled
+                data-i18n="copyResults"
+                data-i18n-title="copyResults"
+                data-i18n-aria-label="copyResults"
+              >
+                Kopioi tilanne
+              </button>
             </div>
           </div>
+
           <div class="player-list-heading" data-i18n="playersOnline">Paikalla</div>
           <ul id="playersList"></ul>
+
+          <div class="room-exit-actions">
+            <button
+              class="room-panel-button room-panel-text-button"
+              id="leaveRoomBtn"
+              type="button"
+              title="Poistu huoneesta"
+              aria-label="Poistu huoneesta"
+              data-i18n-title="leaveRoom"
+              data-i18n-aria-label="leaveRoom"
+              data-i18n="leaveRoomShort"
+            >
+              Poistu
+            </button>
+            <button
+              class="room-panel-button room-panel-text-button room-panel-danger-button"
+              id="closeRoomBtn"
+              type="button"
+              title="Sulje huone"
+              aria-label="Sulje huone"
+              data-i18n-title="closeRoom"
+              data-i18n-aria-label="closeRoom"
+              data-i18n="closeRoomShort"
+              hidden
+            >
+              Sulje huone
+            </button>
+          </div>
         </div>
       </div>
     </main>

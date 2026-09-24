@@ -1,45 +1,65 @@
 # Project Status
 
-## Completed in this session
+## Current state
 
-- Ran a focused product-polish pass on the Sattuma landing and shared room UI.
-- Shortened the landing copy in Finnish and English and moved technical room-state detail out of the main landing message.
-- Reworked the room panel hierarchy:
-  - primary actions: copy link and the visible round-advance action
-  - secondary actions: timer and copy scenario
-  - exit actions: leave room and host-only close room
-- Restyled `Close room` as a visually distinct danger action while keeping the existing confirmation flow and host-only visibility.
-- Aligned visible terminology around room, table, scenario/tilanne, and round/kierros.
-- Added `public/imgs/sattuma-wordmark.png`, a cropped wordmark export used with natural sizing instead of CSS cover-cropping.
-- Hid version/debug chrome in production mode through app config; production now returns `showVersionLabel: false`, `enableDebugPanel: false`, and no debug endpoint.
-- Updated tests only where the production chrome behavior needed coverage.
-- Ran `npm run check` successfully.
-- Completed a tracked-file wording scan for accidental external references.
+Sattuma is functional: bilingual (FI/EN) landing, shared multiplayer rooms with host
+controls, a six-deck table, a mobile observer view, and production mode with
+debug/version chrome hidden. `npm run check` passes (lint, format, module/deck/smoke
+checks, multiplayer tests, and Playwright e2e).
 
-## Files changed
+This checkout is an experimental design pass for comparison against production. It is
+local only and has not been committed or pushed.
 
-- `PROJECT_STATUS.md`
-- `README.md`
-- `public/content/en/instructions.html`
-- `public/content/fi/instructions.html`
-- `public/gameA.css`
-- `public/i18n/en.json`
-- `public/i18n/fi.json`
-- `public/imgs/sattuma-wordmark.png`
-- `public/index.html`
-- `public/js/app-shell.js`
-- `server/http-app.js`
-- `tests/multiplayer.test.js`
+## Interface principles
+
+- One obvious action per view. Filled yellow is reserved for the single primary action:
+  `Create room` on the landing, and the round-advance button in the room panel.
+- Yellow means action, focus, or live state (running timer, current turn). Structure
+  uses neutral hairlines instead of yellow borders.
+- No shadows on static chrome. Overlays (menu, modals, notices) keep one soft shadow.
+- One type family (system UI stack), one spacing scale, and two radii (controls 8px,
+  surfaces 12px). Drop zones are 10px to match the card faces. Tokens live at the top of
+  `public/gameA.css`.
+- One `:focus-visible` ring for every control. Tab order follows the visual order:
+  menu, language, page content, then leave and host-only close room.
+- The board wordmark is the yellow asset on the default table. The five light tables
+  use `sattuma-wordmark-dark.png`, a dark-ink export with identical alpha (about
+  7.6–8.8:1 contrast, up from 1.1–1.25:1). `applyTheme` in `public/js/themes.js` swaps
+  it. The landing wordmark is always yellow on its dark surface.
+- Card faces, deck backs, the table themes, and the game mechanics are unchanged.
+
+## Layout
+
+| Viewport width | Room panel          | Card size |
+| -------------- | ------------------- | --------- |
+| 901–999px      | stacked below table | medium    |
+| 1000–1199px    | beside table, 320px | medium    |
+| 1200px and up  | beside table, 320px | full      |
+
+Heights of 760px or less also use medium cards. Checked from 980 to 1920px: no
+horizontal overflow, no overlap between the panel and the table, and no clipped controls.
+
+## Follow-up issues (not addressed in this pass)
+
+1. **First-click startup race.** The landing and menu handlers attach only after the
+   app config and translations load (`initGame` in `public/js/gameA.js`). That can
+   finish after the page `load` event, so a very early click or key press does nothing.
+   The e2e tests wait for `body.is-landing`, which masks the race in tests but does not
+   fix it for users. Possible fix: attach handlers before the awaits, or disable the
+   controls until the app is ready.
 
 ## Remaining manual visual checks
 
-1. View the landing screen on an actual workshop laptop or projector to confirm the calmer copy and wordmark scale feel right in the room.
-2. Check host and guest side by side in real browsers to confirm the room panel hierarchy feels clear during facilitation.
-3. Review Finnish and English room panels at a smaller laptop viewport, especially the timer/copy scenario row.
-4. Confirm the red close-room treatment feels appropriately serious without drawing too much attention during normal play.
+1. Compare this checkout and production side by side on a real projector (1280x720 and
+   1920x1080) with host and guest windows.
+2. Drag and drop and card flips at 1000–1199px with medium cards beside the panel.
+3. Each table theme on the actual projector, including the dark-ink board wordmark.
+4. Screen-reader pass over the room panel. The phase is announced with a hidden
+   "Round" label, and the current player is marked with `aria-current`.
 
-## Known issues or risks
+## Known risks
 
-- The wordmark crop is derived from the current source asset. If the original wordmark changes, the exported crop should be regenerated and checked visually.
-- The development server still shows debug/version chrome by design. Production mode hides it.
-- Multiplayer room state remains temporary unless optional persistence is enabled in app configuration.
+- Both wordmark exports come from the current source asset. The dark variant keeps the
+  yellow file's alpha and maps its tone onto `#1e272e` ink. Regenerate both if the
+  original changes.
+- Multiplayer room state stays in memory unless optional persistence is enabled.

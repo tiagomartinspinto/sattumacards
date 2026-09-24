@@ -89,6 +89,10 @@ export function createRoom({
 
     playersList.textContent = "";
     const fragment = document.createDocumentFragment();
+    const turnPlayer =
+      lastGameState && lastGameState.phase !== "discuss"
+        ? lastGameState.currentPlayer
+        : "";
 
     players.forEach((playerEntry) => {
       const player =
@@ -103,7 +107,13 @@ export function createRoom({
       colorDot.style.backgroundColor =
         CURSOR_COLORS[Math.abs(hashCode(player.name)) % CURSOR_COLORS.length];
       nameElement.textContent = player.name;
+      nameElement.className = "player-name";
       playerElement.append(colorDot, nameElement);
+
+      if (turnPlayer && player.name === turnPlayer) {
+        playerElement.classList.add("is-current-turn");
+        playerElement.setAttribute("aria-current", "true");
+      }
 
       if (player.isHost) {
         const hostElement = document.createElement("strong");
@@ -433,6 +443,8 @@ export function createRoom({
       return;
     }
 
+    timerDisplay.classList.toggle("is-running", Boolean(gameState.timerEndsAt));
+
     if (!gameState.timerEndsAt) {
       timerDisplay.textContent = "--:--";
       return;
@@ -526,7 +538,8 @@ export function createRoom({
 
     setManagementControlsDisabled(!gameState.canManageRoom);
     syncTimer(gameState);
-    updateObserverPanel();
+    // Re-render players so the current-turn marker follows the game state.
+    updatePlayersList();
   }
 
   function showRejectedAction({ key }) {

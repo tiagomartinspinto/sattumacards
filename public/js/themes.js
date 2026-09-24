@@ -1,7 +1,12 @@
+// The yellow wordmark disappears on the light tables, so they use a dark-ink
+// export of the same asset (identical alpha, only the colour differs).
+const WORDMARK = "./imgs/sattuma-wordmark.png";
+const DARK_WORDMARK = "./imgs/sattuma-wordmark-dark.png";
+
 const THEMES = {
   default: {
     pageBg: "#1e272e",
-    surfaceBg: "rgba(30, 39, 46, 0.96)",
+    surfaceBg: "#1e272e",
     controlBg: "#1e272e",
     controlText: "#f4f6f7",
     controlMuted: "#d8dde1",
@@ -9,14 +14,15 @@ const THEMES = {
     accentColor: "#ffd700",
     accentText: "#1e272e",
     borderColor: "rgba(255, 215, 0, 0.86)",
-    dropzoneBorder: "rgba(255, 215, 0, 0.74)",
-    dropzoneBg: "rgba(255, 215, 0, 0.08)",
+    dropzoneBorder: "rgba(255, 215, 0, 0.5)",
+    dropzoneBg: "rgba(255, 255, 255, 0.03)",
     dropzoneHoverBg: "rgba(255, 215, 0, 0.16)",
     tableLabelText: "#f4f6f7",
     tableLabelShadow: "rgba(0, 0, 0, 0.28)",
     shadowColor: "rgba(0, 0, 0, 0.32)",
   },
   sage: {
+    wordmark: DARK_WORDMARK,
     pageBg: "#b7d3be",
     pageText: "#162e27",
     surfaceBg: "rgba(22, 46, 39, 0.94)",
@@ -35,6 +41,7 @@ const THEMES = {
     shadowColor: "rgba(22, 46, 39, 0.3)",
   },
   mist: {
+    wordmark: DARK_WORDMARK,
     pageBg: "#b9c9c7",
     pageText: "#1c272b",
     surfaceBg: "rgba(28, 39, 43, 0.94)",
@@ -53,6 +60,7 @@ const THEMES = {
     shadowColor: "rgba(28, 39, 43, 0.3)",
   },
   sky: {
+    wordmark: DARK_WORDMARK,
     pageBg: "#b8d6e8",
     pageText: "#142a37",
     surfaceBg: "rgba(20, 42, 55, 0.94)",
@@ -71,6 +79,7 @@ const THEMES = {
     shadowColor: "rgba(20, 42, 55, 0.3)",
   },
   rose: {
+    wordmark: DARK_WORDMARK,
     pageBg: "#e4b8c4",
     pageText: "#321a27",
     surfaceBg: "rgba(50, 26, 39, 0.94)",
@@ -89,6 +98,7 @@ const THEMES = {
     shadowColor: "rgba(50, 26, 39, 0.3)",
   },
   dawn: {
+    wordmark: DARK_WORDMARK,
     pageBg: "linear-gradient(to right, #f1b9aa, #b8d6e8)",
     pageText: "#28232c",
     surfaceBg: "rgba(40, 35, 44, 0.94)",
@@ -114,6 +124,7 @@ function applyTheme(themeName) {
   const rootStyle = document.documentElement.style;
 
   document.body.style.background = theme.pageBg;
+  document.querySelector(".title-image")?.setAttribute("src", theme.wordmark || WORDMARK);
   document.body.style.filter = "none";
   rootStyle.setProperty("--page-bg", theme.pageBg);
   rootStyle.setProperty("--page-text", theme.pageText || theme.controlText);
